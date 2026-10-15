@@ -1,0 +1,37 @@
+# Haskell build artifacts
+dist/
+dist-newstyle/
+.stack-work/
+*.hi
+*.o
+*.dyn_hi
+*.dyn_o
+
+# GHC
+*.prof
+*.hp
+*.eventlog
+
+# Cabal
+cabal.project.local
+cabal.sandbox.config
+cabal.sandbox/
+*.cabal-sandbox/
+
+# Haskell language server
+.hie/
+.hiedata/
+.ghc.environment.*
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+A
