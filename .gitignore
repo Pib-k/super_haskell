@@ -6,7 +6,7 @@ dist-newstyle/
 *.o
 *.dyn_hi
 *.dyn_o
-*.pdf
+
 
 # GHC
 *.prof
@@ -30,6 +30,10 @@ cabal.sandbox/
 *.swp
 *.swo
 *~
+
+*.pdf
+ROADMAP.md
+/levels/
 
 # Operating system
 .DS_Store
