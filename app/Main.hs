@@ -1,6 +1,16 @@
 module Main (main) where
 
-import Types
+import Graphics.Gloss.Interface.IO.Game
+import IO
 
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = do
+    state0 <- initialState
+    playIO
+        (InWindow "Super Haskell" (800, 600) (100, 100))
+        black
+        60
+        state0
+        viewWorld
+        handleInput
+        stepWorld

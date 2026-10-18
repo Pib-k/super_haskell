@@ -37,7 +37,7 @@ data CollectibleType = FloatingTrue | SemiGroup
 data Player = Player
     { playerPos :: Position
     , playerVel :: Velocity
-    , hitbox :: BoundingBox
+    , playerBox :: BoundingBox
     , isGrounded :: Bool
     , health :: Int
     , score :: Int
@@ -52,7 +52,7 @@ data Enemy = Enemy
     { enemyPos :: Position
     , enemyBox :: BoundingBox
     , enemyType :: EnemyType
-    , velocity :: Velocity
+    , enemyVel :: Velocity
     }
 data TransformerLayer = OuterMaybeT | MiddleStateT | BaseIO
 data EnemyType
