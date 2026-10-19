@@ -83,7 +83,6 @@ initialState = do
             , rngState = gen
             }
 
--- Tijdelijk hardcoded level om mee te testen
 testLevel :: LevelState
 testLevel =
     LevelState
@@ -104,13 +103,11 @@ testLevel =
         , bounds = (800, 600)
         }
 
--- Alleen updaten tijdens het spel en als het niet gepauzeerd is
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
     Playing | not (isPaused gs) -> modifyPlayer (stepPlayer dt (terrain (currentLevel gs))) gs
     _ -> gs
 
--- Zwaartekracht, bewegen, daarna botsingen met terrein oplossen
 stepPlayer :: Float -> [Terrain] -> Player -> Player
 stepPlayer dt ts p = foldl resolve moved ts
   where
@@ -118,7 +115,6 @@ stepPlayer dt ts p = foldl resolve moved ts
     falling = setVel (vx, vy + gravity * dt) p
     moved = (applyVelocity dt falling){isGrounded = False}
 
--- Staat de speler op een terrein, dan terugzetten bovenop en vallen stoppen
 resolve :: Player -> Terrain -> Player
 resolve p t = case checkCollision p t of
     Just FromBottom ->
