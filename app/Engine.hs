@@ -1,9 +1,9 @@
 module Engine where
 
 import Classes
-import System.Random (getStdGen)
-import Data.Char(toLower)
+import Data.Char (toLower)
 import Graphics.Gloss.Interface.IO.Game
+import System.Random (getStdGen)
 import Types
 import Types (GameState)
 
@@ -18,8 +18,8 @@ handleInputPure (EventKey key keyState _ _) gs =
         MainMenu -> menuKey k keyState gs
         LevelSelection -> selectionKey k keyState gs
         Playing -> playingKey k keyState gs
-    where
-        k = normalize key
+  where
+    k = normalize key
 handleInputPure _ gs = gs
 
 normalize :: Key -> Key
@@ -36,8 +36,8 @@ selectionKey key Down gs = case key of
     Char 'd' -> gs{levelIndex = min lastIdx (levelIndex gs + 1)}
     SpecialKey KeyEnter -> gs{appMode = Playing}
     _ -> gs
-    where
-        lastIdx = length (availableLevels gs) - 1
+  where
+    lastIdx = length (availableLevels gs) - 1
 selectionKey _ _ gs = gs
 
 playingKey :: Key -> KeyState -> GameState -> GameState
@@ -51,7 +51,7 @@ playerKey (Char 'a') Down p = setVx (-moveSpeed) p
 playerKey (Char 'a') Up p = if fst (getVel p) < 0 then setVx 0 p else p
 playerKey (Char 'd') Down p = setVx moveSpeed p
 playerKey (Char 'd') Up p = if fst (getVel p) > 0 then setVx 0 p else p
-playerKey (Char 'w') Down p 
+playerKey (Char 'w') Down p
     | isGrounded p = setVy jumpSpeed p
 playerKey (Char 's') Down p = setVy fastFallSpeed p
 playerKey _ _ p = p
@@ -97,7 +97,7 @@ testLevel =
                 , collectedTrues = 0
                 }
         , enemies = []
-        , terrain = [Terrain (0, -250) (800, 40) SolidList]
+        , terrain = [Terrain (0, -250) (800, 40) SolidList, Terrain (0, -100) (300, 40) SolidList]
         , collectibles = []
         , animations = []
         , bounds = (800, 600)
@@ -118,10 +118,21 @@ stepPlayer dt ts p = foldl resolve moved ts
 resolve :: Player -> Terrain -> Player
 resolve p t = case checkCollision p t of
     Just FromBottom ->
-        let (px, _) = getPos p
-            (_, ty) = getPos t
-            (_, th) = getBox t
-            (_, ph) = getBox p
-            (vx, _) = getVel p
-         in (setPos (px, ty + th / 2 + ph / 2) (setVel (vx, 0) p)){isGrounded = True}
+        let newY = ty + (th + ph) / 2
+         in (setPos (px, newY) (setVel (vx, 0) p)){isGrounded = True}
+    Just FromTop ->
+        let newY = ty - (th + ph) / 2
+         in setPos (px, newY) (setVel (vx, -1) p)
+    Just FromLeft ->
+        let newX = tx + (tw + pw) / 2
+         in setPos (newX, py) (setVel (0, vy) p)
+    Just FromRight ->
+        let newX = tx - (tw + pw) / 2
+         in setPos (newX, py) (setVel (0, vy) p)
     _ -> p
+  where
+    (px, py) = getPos p
+    (tx, ty) = getPos t
+    (tw, th) = getBox t
+    (pw, ph) = getBox p
+    (vx, vy) = getVel p
