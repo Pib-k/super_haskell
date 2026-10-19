@@ -2,6 +2,7 @@ module Main (main) where
 
 import Graphics.Gloss.Interface.IO.Game
 import IO
+import Engine
 
 main :: IO ()
 main = do

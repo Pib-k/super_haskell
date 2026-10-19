@@ -1,9 +1,10 @@
 module IO where
 
 import Engine
-import GHC.Event
 import Graphics.Gloss (Picture)
 import Types
+import Graphics.Gloss.Interface.IO.Game (Event)
+import Render
 
 viewWorld :: GameState -> IO Picture
 viewWorld = pure . viewPure
