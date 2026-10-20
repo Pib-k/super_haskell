@@ -97,7 +97,7 @@ testLevel =
                 , collectedTrues = 0
                 }
         , enemies = []
-        , terrain = [Terrain (0, -250) (800, 40) SolidList, Terrain (0, -100) (300, 40) SolidList]
+        , terrain = [Terrain (0, -250) (800, 40) SolidList, Terrain (0, -100) (300, 40) SolidList, Terrain (0, -400) (800, 40) BottomPit]
         , collectibles = []
         , animations = []
         , bounds = (800, 600)

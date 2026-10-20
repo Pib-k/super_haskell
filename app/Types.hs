@@ -54,6 +54,7 @@ data Enemy = Enemy
     , enemyType :: EnemyType
     , enemyVel :: Velocity
     }
+
 data TransformerLayer = OuterMaybeT | MiddleStateT | BaseIO
 data EnemyType
     = TypeMismatch {direction :: Float}

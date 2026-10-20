@@ -67,6 +67,8 @@ executable super-haskell
       Engine,
       Render,
       IO,
+      Terrain,
+      FontMetrics,
 
 
     -- Modules included in this executable, other than Main.
