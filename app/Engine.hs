@@ -4,8 +4,9 @@ import Classes
 import Data.Char (toLower)
 import Graphics.Gloss.Interface.IO.Game
 import System.Random (getStdGen)
+import Data.Maybe (isJust)
 import Types
-import Types (GameState)
+import GHC.ForeignPtr (addForeignPtrConcFinalizer)
 
 moveSpeed, jumpSpeed, fastFallSpeed :: Float
 moveSpeed = 200
@@ -88,7 +89,7 @@ testLevel =
     LevelState
         { player =
             Player
-                { playerPos = (0, 0)
+                { playerPos = (-85, 0)
                 , playerVel = (0, 0)
                 , playerBox = (30, 40)
                 , isGrounded = False
@@ -96,8 +97,13 @@ testLevel =
                 , score = 0
                 , collectedTrues = 0
                 }
-        , enemies = []
-        , terrain = [Terrain (0, -250) (800, 40) SolidList, Terrain (0, -100) (300, 40) SolidList]
+        , enemies = [Enemy (0, -65) (30, 30) (TypeMismatch 1) (0, 0)]
+        , terrain = 
+                    [ Terrain (-230, -250) (340, 40) SolidList
+                    , Terrain (230, -250) (340, 40) SolidList
+                    , Terrain (0, -300) (140, 60) BottomPit
+                    , Terrain (0, -100) (300, 40) SolidList
+                    ]
         , collectibles = []
         , animations = []
         , bounds = (800, 600)
@@ -105,11 +111,38 @@ testLevel =
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
-    Playing | not (isPaused gs) -> modifyPlayer (stepPlayer dt (terrain (currentLevel gs))) gs
+    Playing | not (isPaused gs) -> gameOverCheck (respawnCheck gs (modifyLevel (stepLevel (min dt maxStep)) gs))
     _ -> gs
 
+respawnCheck :: GameState -> GameState -> GameState
+respawnCheck before after
+    | lives after < lives before = modifyLevel (resetToDef testLevel) after
+    | otherwise = after
+    where
+        lives = health . player . currentLevel
+
+gameOverCheck :: GameState -> GameState
+gameOverCheck gs
+    | health (player (currentLevel gs)) <= 0 =
+        gs{appMode = MainMenu, currentLevel = testLevel}
+    | otherwise = gs
+
+maxStep :: Float
+maxStep = 1 / 60
+
+modifyLevel :: (LevelState -> LevelState) -> GameState -> GameState
+modifyLevel f gs = gs{currentLevel = f (currentLevel gs)}
+
+stepLevel :: Float -> LevelState -> LevelState
+stepLevel dt lvl = handleContacts lvl {
+    player = stepPlayer dt ts (player lvl),
+    enemies = map (stepEnemy dt ts) (enemies lvl)
+    }
+    where
+        ts = terrain lvl
+
 stepPlayer :: Float -> [Terrain] -> Player -> Player
-stepPlayer dt ts p = foldl resolve moved ts
+stepPlayer dt ts p = voidCheck (foldl resolvePlayer moved ts)
   where
     (vx, vy) = getVel p
     falling = setVel (vx, vy + gravity * dt) p
@@ -136,3 +169,101 @@ resolve p t = case checkCollision p t of
     (tw, th) = getBox t
     (pw, ph) = getBox p
     (vx, vy) = getVel p
+
+resolvePlayer :: Player -> Terrain -> Player
+resolvePlayer p t = case tType t of
+    BottomPit | touching -> hurt p
+    BindTeleporter target | touching -> setPos target p
+    tt  | isSolid tt -> resolve p t
+        | otherwise -> p
+    where 
+        touching = isJust (checkCollision p t)
+
+isSolid :: TerrainType -> Bool
+isSolid SolidList = True
+isSolid FragileComment{} = True
+isSolid ConveyorBelt{} = True
+isSolid UnitPlatform = True
+isSolid InfiniteList{} = True
+isSolid (PatternGuard locked _) = locked
+isSolid _ = False
+
+voidY :: Float
+voidY = -400
+
+voidCheck :: Player -> Player
+voidCheck p
+    | snd (getPos p) < voidY = hurt p
+    | otherwise = p
+
+walkSpeed :: Float
+walkSpeed = 60
+
+stepEnemy :: Float -> [Terrain] -> Enemy -> Enemy
+stepEnemy dt ts e = case enemyType e of
+    TypeMismatch dir -> walk dt ts dir e
+    _ -> e
+
+-- walking step voor TypeMismatch (later veranderen naar stepTypeMisMatch)
+walk :: Float -> [Terrain] -> Float -> Enemy -> Enemy
+walk dt ts dir e
+    | blocked || not groundAhead = e{enemyType = TypeMismatch (-dir)}
+    | otherwise = next
+  where
+    next = applyVelocity dt (setVel (dir * walkSpeed, 0) e)
+    blocked = any (isJust . checkCollision next) ts
+    (x, y) = getPos next
+    (w, h) = getBox next
+    probe = (x + dir * w / 2, y - h / 2 - 1)
+    groundAhead = any (contains probe) ts
+
+contains :: Position -> Terrain -> Bool
+contains (px, py) t = abs (px - tx) * 2 <= tw && abs (py - ty) * 2 <= th
+  where
+    (tx, ty) = getPos t
+    (tw, th) = getBox t
+
+{----- ENEMY HIT FROM ABOVE -----}
+bounceSpeed, explosionDuration :: Float
+bounceSpeed = 300
+explosionDuration = 0.5
+
+stompScore :: Int
+stompScore = 100
+
+spawnPosition :: Position
+spawnPosition = (0, 0)
+
+handleContacts :: LevelState -> LevelState
+handleContacts lvl =
+    lvl
+        { player = p'
+        , enemies = survivors
+        , animations = map explosion stomped ++ animations lvl
+        }
+  where
+    p = player lvl
+    hits = [(e, checkCollision p e) | e <- enemies lvl]
+    stomped = [e | (e, Just FromBottom) <- hits]
+    hurtBy = [e | (e, Just d) <- hits, d /= FromBottom]
+    survivors = [e | (e, c) <- hits, c /= Just FromBottom]
+    p'
+        | not (null stomped) = bounce p{score = score p + stompScore * length stomped}
+        | not (null hurtBy) = hurt p
+        | otherwise = p
+
+bounce :: Player -> Player
+bounce p = setVel (fst (getVel p), bounceSpeed) p
+
+hurt :: Player -> Player
+hurt p = setVel (0, 0) (setPos spawnPosition p{health = health p - 1})
+
+explosion :: Enemy -> Animation
+explosion e =
+    Animation
+        { animPos = getPos e
+        , animType = DefeatExplosion
+        , animTimer = 0
+        , animDuration = explosionDuration
+        , frameIndex = 0
+        }
