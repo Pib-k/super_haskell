@@ -73,4 +73,24 @@ instance Movable Enemy where
     setPos pos e = e{enemyPos = pos}
     setVel vel e = e{enemyVel = vel}
 
-class Resetable a where resetToDef :: Position -> a
+class Resetable a where resetToDef :: a -> a -> a
+
+instance Resetable Player where
+    resetToDef start cur =
+        start
+            {
+                health = health cur
+            ,   score = score cur
+            ,   collectedTrues = collectedTrues cur
+            }
+
+instance Resetable LevelState where
+    resetToDef start cur = 
+        cur
+            {
+                player = resetToDef (player start) (player cur)
+            ,   enemies = enemies start
+            ,   animations = []
+            }
+
+
