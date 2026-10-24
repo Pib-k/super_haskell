@@ -8,10 +8,36 @@ import Data.Maybe (isJust)
 import Types
 import GHC.ForeignPtr (addForeignPtrConcFinalizer)
 
+{----- CONSTANTS -----}
+
 moveSpeed, jumpSpeed, fastFallSpeed :: Float
 moveSpeed = 200
 jumpSpeed = 400
 fastFallSpeed = -300
+
+gravity :: Float
+gravity = -900
+
+voidY :: Float
+voidY = -400
+
+maxStep :: Float
+maxStep = 1 / 60
+
+walkSpeed :: Float
+walkSpeed = 60
+
+bounceSpeed, explosionDuration :: Float
+bounceSpeed = 300
+explosionDuration = 0.5
+
+stompScore :: Int
+stompScore = 100
+
+spawnPosition :: Position
+spawnPosition = (0, 0)
+
+{----- INPUT -----}
 
 handleInputPure :: Event -> GameState -> GameState
 handleInputPure (EventKey key keyState _ _) gs =
@@ -57,6 +83,8 @@ playerKey (Char 'w') Down p
 playerKey (Char 's') Down p = setVy fastFallSpeed p
 playerKey _ _ p = p
 
+{----- HELPER FUNC. FOR STATE -----}
+
 setVx, setVy :: Float -> Player -> Player
 setVx x p = setVel (x, snd (getVel p)) p
 setVy y p = setVel (fst (getVel p), y) p
@@ -66,9 +94,10 @@ modifyPlayer f gs = gs{currentLevel = lvl{player = f (player lvl)}}
   where
     lvl = currentLevel gs
 
-gravity :: Float
-gravity = -900
+modifyLevel :: (LevelState -> LevelState) -> GameState -> GameState
+modifyLevel f gs = gs{currentLevel = f (currentLevel gs)}
 
+{----- BEGIN STATE AND LEVEL -----}
 initialState :: IO GameState
 initialState = do
     gen <- getStdGen
@@ -109,6 +138,8 @@ testLevel =
         , bounds = (800, 600)
         }
 
+{----- STEP -----}
+
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
     Playing | not (isPaused gs) -> gameOverCheck (respawnCheck gs (modifyLevel (stepLevel (min dt maxStep)) gs))
@@ -127,12 +158,6 @@ gameOverCheck gs
         gs{appMode = MainMenu, currentLevel = testLevel}
     | otherwise = gs
 
-maxStep :: Float
-maxStep = 1 / 60
-
-modifyLevel :: (LevelState -> LevelState) -> GameState -> GameState
-modifyLevel f gs = gs{currentLevel = f (currentLevel gs)}
-
 stepLevel :: Float -> LevelState -> LevelState
 stepLevel dt lvl = handleContacts lvl {
     player = stepPlayer dt ts (player lvl),
@@ -140,6 +165,11 @@ stepLevel dt lvl = handleContacts lvl {
     }
     where
         ts = terrain lvl
+
+hurt :: Player -> Player
+hurt p = setVel (0, 0) (setPos spawnPosition p{health = health p - 1})
+
+{----- PLAYER collission TERRAIN -----}
 
 stepPlayer :: Float -> [Terrain] -> Player -> Player
 stepPlayer dt ts p = voidCheck (foldl resolvePlayer moved ts)
@@ -188,16 +218,12 @@ isSolid InfiniteList{} = True
 isSolid (PatternGuard locked _) = locked
 isSolid _ = False
 
-voidY :: Float
-voidY = -400
-
 voidCheck :: Player -> Player
 voidCheck p
     | snd (getPos p) < voidY = hurt p
     | otherwise = p
 
-walkSpeed :: Float
-walkSpeed = 60
+{----- ENEMIES -----}
 
 stepEnemy :: Float -> [Terrain] -> Enemy -> Enemy
 stepEnemy dt ts e = case enemyType e of
@@ -223,16 +249,7 @@ contains (px, py) t = abs (px - tx) * 2 <= tw && abs (py - ty) * 2 <= th
     (tx, ty) = getPos t
     (tw, th) = getBox t
 
-{----- ENEMY HIT FROM ABOVE -----}
-bounceSpeed, explosionDuration :: Float
-bounceSpeed = 300
-explosionDuration = 0.5
-
-stompScore :: Int
-stompScore = 100
-
-spawnPosition :: Position
-spawnPosition = (0, 0)
+{----- PLAYER vs. ENEMIES -----}
 
 handleContacts :: LevelState -> LevelState
 handleContacts lvl =
@@ -254,9 +271,6 @@ handleContacts lvl =
 
 bounce :: Player -> Player
 bounce p = setVel (fst (getVel p), bounceSpeed) p
-
-hurt :: Player -> Player
-hurt p = setVel (0, 0) (setPos spawnPosition p{health = health p - 1})
 
 explosion :: Enemy -> Animation
 explosion e =
