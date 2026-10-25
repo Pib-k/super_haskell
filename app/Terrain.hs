@@ -26,7 +26,7 @@ constrainTerrainBox tt (targetW, targetH) =
         UnitPlatform ->
             (segWidth '(' "()", h)
         MainDoGoal ->
-            (segWidth 'm' "main = do", h)
+            (segWidth 'd' "main = do", h)
         InfiniteList _ ->
             (segWidth '[' "[..]", h)
   where
