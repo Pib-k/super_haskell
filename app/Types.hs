@@ -21,6 +21,7 @@ data GameState = GameState
     , globalScore :: Int
     , rngSeed :: Int
     , rngState :: StdGen
+    , isDebugMode :: Bool
     }
 
 {----- PLAYER AND TERRAIN -----}
