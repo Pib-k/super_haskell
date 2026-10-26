@@ -91,12 +91,12 @@ drawTerrainType tt (w, h) = case tt of
             (s, dy) = textLayout h m
             textW = stringAdvance sym * s
          in color yellow $ drawTextAt s (-textW / 2) dy sym
-    InfiniteList offset ->
+    InfiniteList _ _ _ ->
         let sym = "[..]"
             m = charMetrics '['
             (s, dy) = textLayout h m
             textW = stringAdvance sym * s
-         in color magenta $ drawTextAt s (-textW / 2 + offset) dy sym
+         in color magenta $ drawTextAt s (-textW / 2) dy sym
     _ -> color red $ rectangleSolid w h
   where
     padding = 1.0

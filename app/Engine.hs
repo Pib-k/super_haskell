@@ -4,7 +4,7 @@ import Classes
 import Data.Char (toLower)
 import Graphics.Gloss.Interface.IO.Game
 import System.Random (getStdGen)
-import Terrain (mkTerrain)
+import Terrain (mkTerrain, stepTerrain)
 import Types
 import Types (GameState)
 
@@ -67,6 +67,18 @@ modifyPlayer f gs = gs{currentLevel = lvl{player = f (player lvl)}}
   where
     lvl = currentLevel gs
 
+modifyLevel :: (LevelState -> LevelState) -> GameState -> GameState
+modifyLevel f gs = gs{currentLevel = f (currentLevel gs)}
+
+stepLevel :: Float -> LevelState -> LevelState
+stepLevel dt lvl =
+    lvl
+        { terrain = newTerrain
+        , player = stepPlayer dt newTerrain (player lvl)
+        }
+  where
+    newTerrain = map (stepTerrain dt) (terrain lvl)
+
 gravity :: Float
 gravity = -900
 
@@ -94,7 +106,7 @@ testTerrain =
     , mkTerrain (200, -160) (260, 30) (FragileComment 0.8 False)
     , mkTerrain (-250, -60) (90, 30) UnitPlatform
     , mkTerrain (0, -60) (30, 90) (PatternGuard True 3) -- Tall vertical guard!
-    , mkTerrain (250, -60) (180, 30) (InfiniteList 0.0)
+    , mkTerrain (250, -60) (180, 30) (InfiniteList 0.0 100.0 50.0)
     , mkTerrain (-180, 60) (100, 30) (BindTeleporter (180, 60))
     , mkTerrain (180, 60) (180, 30) MainDoGoal
     ]
@@ -120,7 +132,7 @@ testLevel =
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
-    Playing | not (isPaused gs) -> modifyPlayer (stepPlayer dt (terrain (currentLevel gs))) gs
+    Playing | not (isPaused gs) -> modifyLevel (stepLevel dt) gs
     _ -> gs
 
 stepPlayer :: Float -> [Terrain] -> Player -> Player

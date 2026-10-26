@@ -45,7 +45,16 @@ data Player = Player
     , collectedTrues :: Int
     }
 
-data TerrainType = SolidList | FragileComment {opacity :: Float, isTriggered :: Bool} | BottomPit | BindTeleporter {targetPos :: Position} | ConveyorBelt {beltSpeed :: Float} | PatternGuard {isLocked :: Bool, requiredTrues :: Int} | InfiniteList {listOffset :: Float} | MainDoGoal | UnitPlatform
+data TerrainType
+    = SolidList
+    | FragileComment {opacity :: Float, isTriggered :: Bool}
+    | BottomPit
+    | BindTeleporter {targetPos :: Position}
+    | ConveyorBelt {beltSpeed :: Float}
+    | PatternGuard {isLocked :: Bool, requiredTrues :: Int}
+    | InfiniteList {currentOffset :: Float, maxOffset :: Float, velocity :: Float}
+    | MainDoGoal
+    | UnitPlatform
 data Terrain = Terrain {terrainPos :: Position, terrainBox :: BoundingBox, tType :: TerrainType}
 
 {----- ENEMIES -----}

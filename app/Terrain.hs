@@ -27,7 +27,7 @@ constrainTerrainBox tt (targetW, targetH) =
             (segWidth '(' "()", h)
         MainDoGoal ->
             (segWidth 'd' "main = do", h)
-        InfiniteList _ ->
+        InfiniteList _ _ _ ->
             (segWidth '[' "[..]", h)
   where
     h = max 1.0 targetH
@@ -43,3 +43,17 @@ constrainTerrainBox tt (targetW, targetH) =
 
 mkTerrain :: Position -> BoundingBox -> TerrainType -> Terrain
 mkTerrain pos rawBox tt = Terrain pos (constrainTerrainBox tt rawBox) tt
+
+stepTerrain :: Float -> Terrain -> Terrain
+stepTerrain ds t@(Terrain _ _ (FragileComment opac isTrigg))
+    | isTrigg = t{tType = FragileComment (max 0.0 (opac - ds / 0.8)) isTrigg}
+    | otherwise = t
+stepTerrain ds (Terrain (x, y) box (InfiniteList cOff mOff vel)) =
+    Terrain (x + vel * ds, y) box (InfiniteList finalOffset mOff newVel)
+  where
+    nextOffset = cOff + vel * ds
+    (newVel, finalOffset)
+        | nextOffset >= mOff = (-vel, mOff)
+        | nextOffset <= 0.0 = (-vel, 0.0)
+        | otherwise = (vel, nextOffset)
+stepTerrain _ tt = tt
