@@ -110,7 +110,7 @@ drawTerrainType tt (w, h) = case tt of
         translate x y $ scale s s (text str)
 
 instance Renderable Enemy where
-    render _ e = uncurry translate (getPos e) $ color orange $ uncurry rectangleSolid (getBox e)
+    render _dbg e = uncurry translate (getPos e) $ color orange $ uncurry rectangleSolid (getBox e)
 
 viewPure :: GameState -> Picture
 viewPure gs = case appMode gs of

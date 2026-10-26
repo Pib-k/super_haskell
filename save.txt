@@ -1,0 +1,1 @@
+SaveData {savedLevel = 0, savedGlobalScore = 0, savedScore = 100, savedHealth = 3, savedTrues = 0}

@@ -2,18 +2,17 @@ module Engine where
 
 import Classes
 import Data.Char (toLower)
-import Data.Maybe (isJust)
-import GHC.ForeignPtr (addForeignPtrConcFinalizer)
 import Graphics.Gloss.Interface.IO.Game
 import System.Random (getStdGen)
-import Terrain (mkTerrain, stepTerrain)
+import Terrain (mkTerrain)
+import Data.Maybe (isJust)
 import Types
 
 {----- CONSTANTS -----}
 
 moveSpeed, jumpSpeed, fastFallSpeed :: Float
 moveSpeed = 200
-jumpSpeed = 400
+jumpSpeed = 600
 fastFallSpeed = -300
 
 gravity :: Float
@@ -134,7 +133,7 @@ testTerrain =
     , mkTerrain (-200, -160) (260, 30) (ConveyorBelt 50.0)
     , mkTerrain (200, -160) (260, 30) (FragileComment 0.8 False)
     , mkTerrain (-250, -60) (90, 30) UnitPlatform
-    , mkTerrain (0, 0) (30, 90) (PatternGuard True 3) -- Tall vertical guard!
+    , mkTerrain (0, 0) (30, 90) (PatternGuard True 3)
     , mkTerrain (250, -60) (180, 30) (InfiniteList 0.0 100.0 50.0)
     , mkTerrain (-180, 60) (100, 30) (BindTeleporter (180, 60))
     , mkTerrain (180, 60) (180, 30) MainDoGoal
@@ -154,6 +153,7 @@ testLevel =
                 }
         , enemies = [Enemy (-40, -65) (30, 30) (TypeMismatch 1) (0, 0) False]
         , terrain = testTerrain
+        , enemies = [Enemy (0, -65) (30, 30) (TypeMismatch 1) (0, 0)]
         , collectibles = []
         , animations = []
         , bounds = (800, 600)
@@ -172,14 +172,22 @@ respawnCheck :: GameState -> GameState -> GameState
 respawnCheck before after
     | lives after < lives before = modifyLevel (resetToDef testLevel) after
     | otherwise = after
-  where
-    lives = health . player . currentLevel
+    where
+        lives = health . player . currentLevel
 
 gameOverCheck :: GameState -> GameState
 gameOverCheck gs
     | health (player (currentLevel gs)) <= 0 =
         gs{appMode = MainMenu, currentLevel = testLevel}
     | otherwise = gs
+
+stepLevel :: Float -> LevelState -> LevelState
+stepLevel dt lvl = handleContacts lvl {
+    player = stepPlayer dt ts (player lvl),
+    enemies = map (stepEnemy dt ts) (enemies lvl)
+    }
+    where
+        ts = terrain lvl
 
 hurt :: Player -> Player
 hurt p = setVel (0, 0) (setPos spawnPosition p{health = health p - 1})
@@ -219,11 +227,10 @@ resolvePlayer :: Player -> Terrain -> Player
 resolvePlayer p t = case tType t of
     BottomPit | touching -> hurt p
     BindTeleporter target | touching -> setPos target p
-    tt
-        | isSolid tt -> resolve p t
+    tt  | isSolid tt -> resolve p t
         | otherwise -> p
-  where
-    touching = isJust (checkCollision p t)
+    where 
+        touching = isJust (checkCollision p t)
 
 isSolid :: TerrainType -> Bool
 isSolid SolidList = True
