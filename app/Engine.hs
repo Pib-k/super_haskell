@@ -2,13 +2,12 @@ module Engine where
 
 import Classes
 import Data.Char (toLower)
+import Data.Maybe (isJust)
+import GHC.ForeignPtr (addForeignPtrConcFinalizer)
 import Graphics.Gloss.Interface.IO.Game
 import System.Random (getStdGen)
 import Terrain (mkTerrain, stepTerrain)
-import Terrain (mkTerrain)
-import Data.Maybe (isJust)
 import Types
-import GHC.ForeignPtr (addForeignPtrConcFinalizer)
 
 {----- CONSTANTS -----}
 
@@ -109,9 +108,6 @@ stepLevel dt lvl =
   where
     newTerrain = map (stepTerrain dt) (terrain lvl)
 
-gravity :: Float
-gravity = -900
-
 {----- BEGIN STATE AND LEVEL -----}
 initialState :: IO GameState
 initialState = do
@@ -173,8 +169,8 @@ respawnCheck :: GameState -> GameState -> GameState
 respawnCheck before after
     | lives after < lives before = modifyLevel (resetToDef testLevel) after
     | otherwise = after
-    where
-        lives = health . player . currentLevel
+  where
+    lives = health . player . currentLevel
 
 gameOverCheck :: GameState -> GameState
 gameOverCheck gs
@@ -183,12 +179,14 @@ gameOverCheck gs
     | otherwise = gs
 
 stepLevel :: Float -> LevelState -> LevelState
-stepLevel dt lvl = handleContacts lvl {
-    player = stepPlayer dt ts (player lvl),
-    enemies = map (stepEnemy dt ts) (enemies lvl)
-    }
-    where
-        ts = terrain lvl
+stepLevel dt lvl =
+    handleContacts
+        lvl
+            { player = stepPlayer dt ts (player lvl)
+            , enemies = map (stepEnemy dt ts) (enemies lvl)
+            }
+  where
+    ts = terrain lvl
 
 hurt :: Player -> Player
 hurt p = setVel (0, 0) (setPos spawnPosition p{health = health p - 1})
@@ -228,10 +226,11 @@ resolvePlayer :: Player -> Terrain -> Player
 resolvePlayer p t = case tType t of
     BottomPit | touching -> hurt p
     BindTeleporter target | touching -> setPos target p
-    tt  | isSolid tt -> resolve p t
+    tt
+        | isSolid tt -> resolve p t
         | otherwise -> p
-    where 
-        touching = isJust (checkCollision p t)
+  where
+    touching = isJust (checkCollision p t)
 
 isSolid :: TerrainType -> Bool
 isSolid SolidList = True
