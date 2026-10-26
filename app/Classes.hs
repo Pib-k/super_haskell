@@ -45,10 +45,10 @@ checkCollision a b =
             else Nothing
 
 class Renderable a where
-    render :: a -> Picture
+    render :: Bool -> a -> Picture
 
 instance (Renderable a) => Renderable [a] where
-    render = pictures . map render
+    render dbg = pictures . map (render dbg)
 
 class Updateable a where
     updateState :: Float -> a -> a

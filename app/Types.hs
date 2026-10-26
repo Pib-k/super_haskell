@@ -21,6 +21,7 @@ data GameState = GameState
     , globalScore :: Int
     , rngSeed :: Int
     , rngState :: StdGen
+    , isDebugMode :: Bool
     }
 
 {----- PLAYER AND TERRAIN -----}
@@ -54,6 +55,7 @@ data Enemy = Enemy
     , enemyType :: EnemyType
     , enemyVel :: Velocity
     }
+
 data TransformerLayer = OuterMaybeT | MiddleStateT | BaseIO
 data EnemyType
     = TypeMismatch {direction :: Float}

@@ -4,6 +4,7 @@ import Classes
 import Data.Char (toLower)
 import Graphics.Gloss.Interface.IO.Game
 import System.Random (getStdGen)
+import Terrain (mkTerrain)
 import Data.Maybe (isJust)
 import Types
 import GHC.ForeignPtr (addForeignPtrConcFinalizer)
@@ -69,6 +70,7 @@ selectionKey _ _ gs = gs
 
 playingKey :: Key -> KeyState -> GameState -> GameState
 playingKey (Char 'p') Down gs = gs{isPaused = not (isPaused gs)}
+playingKey (Char 'b') Down gs = gs{isDebugMode = not (isDebugMode gs)}
 playingKey key keyState gs
     | isPaused gs = gs
     | otherwise = modifyPlayer (playerKey key keyState) gs
@@ -111,8 +113,21 @@ initialState = do
             , globalScore = 0
             , rngSeed = 0
             , rngState = gen
+            , isDebugMode = False
             }
 
+testTerrain :: [Terrain]
+testTerrain =
+    [ mkTerrain (0, -290) (800, 30) BottomPit
+    , mkTerrain (0, -240) (800, 30) SolidList
+    , mkTerrain (-200, -160) (260, 30) (ConveyorBelt 50.0)
+    , mkTerrain (200, -160) (260, 30) (FragileComment 0.8 False)
+    , mkTerrain (-250, -60) (90, 30) UnitPlatform
+    , mkTerrain (0, -60) (30, 90) (PatternGuard True 3) -- Tall vertical guard!
+    , mkTerrain (250, -60) (180, 30) (InfiniteList 0.0)
+    , mkTerrain (-180, 60) (100, 30) (BindTeleporter (180, 60))
+    , mkTerrain (180, 60) (180, 30) MainDoGoal
+    ]
 testLevel :: LevelState
 testLevel =
     LevelState
@@ -126,13 +141,9 @@ testLevel =
                 , score = 0
                 , collectedTrues = 0
                 }
+        , enemies = []
+        , terrain = testTerrain
         , enemies = [Enemy (0, -65) (30, 30) (TypeMismatch 1) (0, 0)]
-        , terrain = 
-                    [ Terrain (-230, -250) (340, 40) SolidList
-                    , Terrain (230, -250) (340, 40) SolidList
-                    , Terrain (0, -300) (140, 60) BottomPit
-                    , Terrain (0, -100) (300, 40) SolidList
-                    ]
         , collectibles = []
         , animations = []
         , bounds = (800, 600)
