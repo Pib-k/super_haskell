@@ -152,7 +152,6 @@ testLevel =
                 }
         , enemies = [Enemy (0, -65) (30, 30) (TypeMismatch 1) (0, 0)]
         , terrain = testTerrain
-        , enemies = [Enemy (0, -65) (30, 30) (TypeMismatch 1) (0, 0)]
         , collectibles = []
         , animations = []
         , bounds = (800, 600)
@@ -177,16 +176,6 @@ gameOverCheck gs
     | health (player (currentLevel gs)) <= 0 =
         gs{appMode = MainMenu, currentLevel = testLevel}
     | otherwise = gs
-
-stepLevel :: Float -> LevelState -> LevelState
-stepLevel dt lvl =
-    handleContacts
-        lvl
-            { player = stepPlayer dt ts (player lvl)
-            , enemies = map (stepEnemy dt ts) (enemies lvl)
-            }
-  where
-    ts = terrain lvl
 
 hurt :: Player -> Player
 hurt p = setVel (0, 0) (setPos spawnPosition p{health = health p - 1})
