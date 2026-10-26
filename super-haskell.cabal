@@ -54,28 +54,22 @@ extra-doc-files:    CHANGELOG.md
 common warnings
     ghc-options: -Wall
 
-executable super-haskell
-    -- Import common warning flags.
+library
     import:           warnings
-
-    -- .hs or .lhs file containing the Main module.
-    main-is:          Main.hs
-
-    other-modules:
-      Types,
-      Classes,
-      Engine,
-      Render,
-      IO,
-      Terrain,
-      FontMetrics,
-
-
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
-
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+    exposed-modules:
+      Core.Types,
+      Core.Constants,
+      Core.Classes,
+      Graphics.FontMetrics,
+      Graphics.Render,
+      Entities.Terrain,
+      Entities.Collectible,
+      Entities.Player,
+      Entities.Enemy,
+      Game.State,
+      Game.Engine,
+      Game.Input,
+      Storage.Save
 
     build-depends:    base ^>=4.20.2.0
                     , gloss
@@ -84,8 +78,17 @@ executable super-haskell
                     , bytestring
                     , text
 
-    -- Directories containing source files.
-    hs-source-dirs:   app
+    hs-source-dirs:   src
+    default-language: Haskell2010
 
-    -- Base language which the package is written in.
+executable super-haskell
+    import:           warnings
+    main-is:          Main.hs
+
+    build-depends:    base ^>=4.20.2.0
+                    , gloss
+                    , random
+                    , super-haskell
+
+    hs-source-dirs:   app
     default-language: Haskell2010
