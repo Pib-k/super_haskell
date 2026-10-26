@@ -63,6 +63,7 @@ data Enemy = Enemy
     , enemyBox :: BoundingBox
     , enemyType :: EnemyType
     , enemyVel :: Velocity
+    , enemyGrounded :: Bool
     }
 
 data TransformerLayer = OuterMaybeT | MiddleStateT | BaseIO

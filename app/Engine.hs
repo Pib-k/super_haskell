@@ -101,10 +101,12 @@ modifyLevel f gs = gs{currentLevel = f (currentLevel gs)}
 
 stepLevel :: Float -> LevelState -> LevelState
 stepLevel dt lvl =
-    lvl
-        { terrain = newTerrain
-        , player = stepPlayer dt newTerrain (player lvl)
-        }
+    handleContacts
+        lvl
+            { terrain = newTerrain
+            , player = stepPlayer dt newTerrain (player lvl)
+            , enemies = map (stepEnemy dt newTerrain) (enemies lvl)
+            }
   where
     newTerrain = map (stepTerrain dt) (terrain lvl)
 
@@ -132,7 +134,7 @@ testTerrain =
     , mkTerrain (-200, -160) (260, 30) (ConveyorBelt 50.0)
     , mkTerrain (200, -160) (260, 30) (FragileComment 0.8 False)
     , mkTerrain (-250, -60) (90, 30) UnitPlatform
-    , mkTerrain (0, -60) (30, 90) (PatternGuard True 3) -- Tall vertical guard!
+    , mkTerrain (0, 0) (30, 90) (PatternGuard True 3) -- Tall vertical guard!
     , mkTerrain (250, -60) (180, 30) (InfiniteList 0.0 100.0 50.0)
     , mkTerrain (-180, 60) (100, 30) (BindTeleporter (180, 60))
     , mkTerrain (180, 60) (180, 30) MainDoGoal
@@ -150,7 +152,7 @@ testLevel =
                 , score = 0
                 , collectedTrues = 0
                 }
-        , enemies = [Enemy (0, -65) (30, 30) (TypeMismatch 1) (0, 0)]
+        , enemies = [Enemy (-40, -65) (30, 30) (TypeMismatch 1) (0, 0) False]
         , terrain = testTerrain
         , collectibles = []
         , animations = []
@@ -161,8 +163,10 @@ testLevel =
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
-    Playing | not (isPaused gs) -> modifyLevel (stepLevel dt) gs
+    Playing | not (isPaused gs) -> gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step) gs))
     _ -> gs
+  where
+    step = min dt maxStep
 
 respawnCheck :: GameState -> GameState -> GameState
 respawnCheck before after
@@ -245,15 +249,22 @@ stepEnemy dt ts e = case enemyType e of
 -- walking step voor TypeMismatch (later veranderen naar stepTypeMisMatch)
 walk :: Float -> [Terrain] -> Float -> Enemy -> Enemy
 walk dt ts dir e
-    | blocked || not groundAhead = e{enemyType = TypeMismatch (-dir)}
-    | otherwise = next
+    | blocked || atCliff = landed{enemyType = TypeMismatch (-dir)}
+    | otherwise = landed
   where
-    next = applyVelocity dt (setVel (dir * walkSpeed, 0) e)
-    blocked = any (isJust . checkCollision next) ts
-    (x, y) = getPos next
-    (w, h) = getBox next
+    (_, vy) = getVel e
+    falling = setVel (dir * walkSpeed, vy + gravity * dt) e{enemyGrounded = False}
+    moved = applyVelocity dt falling
+    landed = foldl resolveEnemy moved ts
+
+    isWall c = c == Just FromLeft || c == Just FromRight
+    blocked = any (\t -> isSolid (tType t) && isWall (checkCollision landed t)) ts
+
+    (x, y) = getPos landed
+    (w, h) = getBox landed
     probe = (x + dir * w / 2, y - h / 2 - 1)
     groundAhead = any (contains probe) ts
+    atCliff = enemyGrounded landed && not groundAhead
 
 contains :: Position -> Terrain -> Bool
 contains (px, py) t = abs (px - tx) * 2 <= tw && abs (py - ty) * 2 <= th
@@ -293,3 +304,16 @@ explosion e =
         , animDuration = explosionDuration
         , frameIndex = 0
         }
+
+resolveEnemy :: Enemy -> Terrain -> Enemy
+resolveEnemy e t = case checkCollision e t of
+    Just FromBottom
+        | isSolid (tType t) ->
+            let (_, ty) = getPos t
+                (_, th) = getBox t
+                (_, eh) = getBox e
+                (ex, _) = getPos e
+                (vx, _) = getVel e
+                newY = ty + (th + eh) / 2
+             in setPos (ex, newY) (setVel (vx, 0) e{enemyGrounded = True})
+    _ -> e

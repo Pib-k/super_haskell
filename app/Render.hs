@@ -110,7 +110,7 @@ drawTerrainType tt (w, h) = case tt of
         translate x y $ scale s s (text str)
 
 instance Renderable Enemy where
-    render e = uncurry translate (getPos e) $ color orange $ uncurry rectangleSolid (getBox e)
+    render _ e = uncurry translate (getPos e) $ color orange $ uncurry rectangleSolid (getBox e)
 
 viewPure :: GameState -> Picture
 viewPure gs = case appMode gs of
@@ -119,6 +119,6 @@ viewPure gs = case appMode gs of
     Playing ->
         let lvl = currentLevel gs
             dbg = isDebugMode gs
-         in pictures [render dbg (terrain lvl), render dbg (player lvl), render (enemies lvl)]
+         in pictures [render dbg (terrain lvl), render dbg (player lvl), render dbg (enemies lvl)]
   where
     label = translate (-300) 0 . scale 0.2 0.2 . color white . text
