@@ -1,5 +1,6 @@
 module Core.Classes where
 
+import Core.Constants (gravity)
 import Core.Types
 import Graphics.Gloss (Picture, pictures)
 
@@ -49,5 +50,29 @@ class (Collidable a) => Movable a where
             (vx, vy) = getVel entity
          in setPos (x + vx * dt, y + vy * dt) entity
 
+    applyGravity :: Float -> a -> a
+    applyGravity dt entity = let (vx, vy) = getVel entity in setVel (vx, vy + gravity * dt) entity
+
 class Resetable a where
     resetToDef :: a -> a -> a
+
+class (Movable a) => Grounded a where
+    getGrounded :: a -> Bool
+    setGrounded :: Bool -> a -> a
+
+snapToTop :: (Grounded a, Collidable b) => a -> b -> a
+snapToTop e t =
+    let (_, ty) = getPos t
+        (_, th) = getBox t
+        (_, eh) = getBox e
+        (ex, _) = getPos e
+        (vx, _) = getVel e
+        newY = ty + (th + eh) / 2
+     in setPos (ex, newY) (setVel (vx, 0) $ setGrounded True e)
+
+setVx, setVy :: (Movable a) => Float -> a -> a
+setVx x e = setVel (x, snd (getVel e)) e
+setVy y e = setVel (fst (getVel e), y) e
+
+stepMovement :: (Grounded a) => Float -> a -> a
+stepMovement dt = applyVelocity dt . applyGravity dt . setGrounded False

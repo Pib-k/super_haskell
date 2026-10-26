@@ -37,17 +37,18 @@ instance Resetable Player where
             }
 
 instance Renderable Player where
-    render dbg p = uncurry translate (getPos p) $
-        pictures
-            [ color red $ uncurry rectangleSolid (getBox p)
-            , color c (uncurry rectangleWire (getBox p))
-            ]
+    render dbg p =
+        uncurry translate (getPos p) $
+            pictures
+                [ color red $ uncurry rectangleSolid (getBox p)
+                , color c (uncurry rectangleWire (getBox p))
+                ]
       where
         c = if dbg then dim white else makeColor 0.0 0.0 0.0 0.0
 
-setVx, setVy :: Float -> Player -> Player
-setVx x p = setVel (x, snd (getVel p)) p
-setVy y p = setVel (fst (getVel p), y) p
+instance Grounded Player where
+    setGrounded tf p = p{isGrounded = tf}
+    getGrounded = isGrounded
 
 voidCheck :: Player -> Player
 voidCheck p
@@ -63,9 +64,7 @@ bounce p = setVel (fst (getVel p), bounceSpeed) p
 stepPlayer :: Float -> [Terrain] -> Player -> Player
 stepPlayer dt ts p = voidCheck (foldl resolvePlayer moved ts)
   where
-    (vx, vy) = getVel p
-    falling = setVel (vx, vy + gravity * dt) p
-    moved = (applyVelocity dt falling){isGrounded = False}
+    moved = stepMovement dt p
 
 resolvePlayer :: Player -> Terrain -> Player
 resolvePlayer p t = case tType t of
@@ -79,9 +78,7 @@ resolvePlayer p t = case tType t of
 
 resolve :: Player -> Terrain -> Player
 resolve p t = case checkCollision p t of
-    Just FromBottom ->
-        let newY = ty + (th + ph) / 2
-         in (setPos (px, newY) (setVel (vx, 0) p)){isGrounded = True}
+    Just FromBottom -> snapToTop p t
     Just FromTop ->
         let newY = ty - (th + ph) / 2
          in setPos (px, newY) (setVel (vx, -1) p)
