@@ -123,7 +123,7 @@ testLevel =
                 , score = 0
                 , collectedTrues = 0
                 }
-        , enemies = []
+        , enemies = [Enemy (0, -65) (30, 30) (TypeMismatch 1) (0, 0)]
         , terrain = testTerrain
         , collectibles = []
         , animations = []
