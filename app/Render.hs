@@ -109,6 +109,9 @@ drawTerrainType tt (w, h) = case tt of
     drawTextAt s x y str =
         translate x y $ scale s s (text str)
 
+instance Renderable Enemy where
+    render e = uncurry translate (getPos e) $ color orange $ uncurry rectangleSolid (getBox e)
+
 viewPure :: GameState -> Picture
 viewPure gs = case appMode gs of
     MainMenu -> label "Super Haskell - Press Enter"
