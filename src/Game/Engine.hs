@@ -3,43 +3,14 @@ module Game.Engine where
 import Core.Classes
 import Core.Constants
 import Core.Types
+import Data.List (partition)
+import Data.Maybe (isJust)
+import Entities.Collectible
 import Entities.Enemy
 import Entities.Player
 import Entities.Terrain
+import Game.Levels
 import Game.State
-
-testTerrain :: [Terrain]
-testTerrain =
-    [ mkTerrain (0, -290) (800, 30) BottomPit
-    , mkTerrain (0, -240) (800, 30) SolidList
-    , mkTerrain (-200, -160) (260, 30) (ConveyorBelt 50.0)
-    , mkTerrain (200, -160) (260, 30) (FragileComment 0.8 False)
-    , mkTerrain (-250, -60) (90, 30) UnitPlatform
-    , mkTerrain (0, 0) (30, 90) (PatternGuard True 3)
-    , mkTerrain (250, -60) (180, 30) (InfiniteList 0.0 100.0 50.0)
-    , mkTerrain (-180, 60) (100, 30) (BindTeleporter (180, 60))
-    , mkTerrain (180, 60) (180, 30) MainDoGoal
-    ]
-
-testLevel :: LevelState
-testLevel =
-    LevelState
-        { player =
-            Player
-                { playerPos = (-85, 0)
-                , playerVel = (0, 0)
-                , playerBox = (30, 40)
-                , isGrounded = False
-                , health = 3
-                , score = 0
-                , collectedTrues = 0
-                }
-        , enemies = [Enemy (-40, -65) (30, 30) (TypeMismatch 1) (0, 0) False]
-        , terrain = testTerrain
-        , collectibles = []
-        , animations = []
-        , bounds = (800, 600)
-        }
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
@@ -75,20 +46,41 @@ gameOverCheck gs
 handleContacts :: LevelState -> LevelState
 handleContacts lvl =
     lvl
-        { player = p'
+        { player = foldl' (flip applyItem) p' pickedUp
         , enemies = survivors
         , animations = map explosion stomped ++ animations lvl
+        , terrain = map (triggerTerrain p') ts
+        , collectibles = remaining
         }
   where
     p = player lvl
+    ts = terrain lvl
     hits = [(e, checkCollision p e) | e <- enemies lvl]
     stomped = [e | (e, Just FromBottom) <- hits]
     hurtBy = [e | (e, Just d) <- hits, d /= FromBottom]
     survivors = [e | (e, c) <- hits, c /= Just FromBottom]
+    (pickedUp, remaining) = partition (\c -> isJust (checkCollision p c)) $ collectibles lvl
     p'
         | not (null stomped) = bounce p{score = score p + stompScore * length stomped}
         | not (null hurtBy) = hurt p
         | otherwise = p
+
+applyItem :: Collectible -> Player -> Player
+applyItem c p = case collectType c of
+    FloatingTrue ->
+        p
+            { collectedTrues = collectedTrues p + 1
+            , score = score p + 50
+            }
+    SemiGroup -> p{health = health p + 1}
+
+triggerTerrain :: Player -> Terrain -> Terrain
+triggerTerrain p t = case tType t of
+    FragileComment opac False
+        | checkCollision p t == Just FromBottom -> t{tType = FragileComment opac True}
+    PatternGuard True req
+        | collectedTrues p >= req -> t{tType = PatternGuard False req}
+    _ -> t
 
 explosion :: Enemy -> Animation
 explosion e =

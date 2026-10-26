@@ -68,6 +68,7 @@ library
       Entities.Enemy,
       Game.State,
       Game.Engine,
+      Game.Levels,
       Game.Input,
       Storage.Save
 

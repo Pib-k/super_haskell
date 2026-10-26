@@ -3,6 +3,7 @@ module Entities.Player where
 import Core.Classes
 import Core.Constants
 import Core.Types
+import Data.List
 import Data.Maybe (isJust)
 import Entities.Terrain
 import Graphics.Gloss
@@ -62,9 +63,12 @@ bounce :: Player -> Player
 bounce p = setVel (fst (getVel p), bounceSpeed) p
 
 stepPlayer :: Float -> [Terrain] -> Player -> Player
-stepPlayer dt ts p = voidCheck (foldl resolvePlayer moved ts)
+stepPlayer dt ts p = voidCheck $ applyGroundMotion dt ts $ foldl resolvePlayer moved ts
   where
     moved = stepMovement dt p
+
+conveyorSpeed :: [Terrain] -> Player -> Float
+conveyorSpeed ts p = sum [speed | t <- ts, ConveyorBelt speed <- [tType t], checkCollision p t == Just FromBottom]
 
 resolvePlayer :: Player -> Terrain -> Player
 resolvePlayer p t = case tType t of
