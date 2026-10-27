@@ -14,6 +14,6 @@ viewPure gs = case appMode gs of
     Playing ->
         let lvl = currentLevel gs
             dbg = isDebugMode gs
-         in pictures [render dbg (terrain lvl), render dbg (player lvl), render dbg (enemies lvl)]
+         in pictures [render dbg (terrain lvl), render dbg (player lvl), render dbg (enemies lvl), render dbg (collectibles lvl)]
   where
     label = translate (-300) 0 . scale 0.2 0.2 . color white . text

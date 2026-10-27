@@ -2,6 +2,7 @@ module Core.Classes where
 
 import Core.Constants (gravity)
 import Core.Types
+import Data.List
 import Graphics.Gloss (Picture, pictures)
 
 class Collidable a where
@@ -17,8 +18,8 @@ checkCollision a b =
         (ax, ay) = getPos a
         (bx, by) = getPos b
 
-        overlapX = abs (ax - bx) * 2 < aw + bw
-        overlapY = abs (ay - by) * 2 < ah + bh
+        overlapX = abs (ax - bx) * 2 <= aw + bw
+        overlapY = abs (ay - by) * 2 <= ah + bh
      in if overlapX && overlapY
             then
                 -- Side with largest overlap is the Collision Direction.
@@ -49,7 +50,6 @@ class (Collidable a) => Movable a where
         let (x, y) = getPos entity
             (vx, vy) = getVel entity
          in setPos (x + vx * dt, y + vy * dt) entity
-
     applyGravity :: Float -> a -> a
     applyGravity dt entity = let (vx, vy) = getVel entity in setVel (vx, vy + gravity * dt) entity
 
@@ -76,3 +76,7 @@ setVy y e = setVel (fst (getVel e), y) e
 
 stepMovement :: (Grounded a) => Float -> a -> a
 stepMovement dt = applyVelocity dt . applyGravity dt . setGrounded False
+
+standingOn :: (Collidable a, Collidable b) => a -> [b] -> Maybe b
+standingOn entity surfaces =
+    find (\s -> checkCollision entity s == Just FromBottom) surfaces

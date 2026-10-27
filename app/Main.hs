@@ -1,7 +1,8 @@
 module Main (main) where
 
-import Game.Engine (stepPure, testLevel)
+import Game.Engine (stepPure)
 import Game.Input (handleInputPure, normalize)
+import Game.Levels
 import Game.State (AppMode (..), GameState (..))
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game (Event (..), Key (..), KeyState (..), playIO)
@@ -15,7 +16,7 @@ initialState = do
     pure
         GameState
             { appMode = MainMenu
-            , currentLevel = testLevel
+            , currentLevel = thePrelude
             , availableLevels = ["The Prelude", "The Monad Maze", "The IO Underground"]
             , levelIndex = 0
             , isPaused = False

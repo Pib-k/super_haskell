@@ -1,6 +1,7 @@
 module Entities.Terrain where
 
 import Core.Classes
+import Core.Constants
 import Core.Types
 import Graphics.FontMetrics
 import Graphics.Gloss
@@ -28,9 +29,24 @@ instance Collidable Terrain where
     getPos = terrainPos
     getBox = terrainBox
 
+surfaceVelocity :: TerrainType -> Float
+surfaceVelocity (ConveyorBelt spd) = spd
+surfaceVelocity (InfiniteList _ _ vel) = vel
+surfaceVelocity _ = 0.0
+
+applyGroundMotion :: (Collidable a, Movable a) => Float -> [Terrain] -> a -> a
+applyGroundMotion dt ts entity = case standingOn entity ts of
+    Just t ->
+        let vx = surfaceVelocity (tType t)
+            (x, y) = getPos entity
+         in if vx == 0
+                then entity
+                else setPos (x + vx * dt, y) entity
+    Nothing -> entity
+
 isSolid :: TerrainType -> Bool
 isSolid SolidList = True
-isSolid FragileComment{} = True
+isSolid (FragileComment opac _) = opac > 0.0
 isSolid ConveyorBelt{} = True
 isSolid UnitPlatform = True
 isSolid InfiniteList{} = True
@@ -125,18 +141,20 @@ drawTerrainType tt (w, h) = case tt of
                     | i <- [0 .. count - 1]
                     , let x = -w / 2 + fromIntegral i * segW
                     ]
-    FragileComment opac _ ->
-        let sym = "--"
-            m = charMetrics '-'
-            (s, dy) = textLayout h m
-            segW = stringAdvance sym * s
-            count = max 1 (round (w / segW))
-         in color (makeColor 1.0 1.0 1.0 opac) $
-                pictures
-                    [ drawTextAt s x dy sym
-                    | i <- [0 .. count - 1]
-                    , let x = -w / 2 + fromIntegral i * segW
-                    ]
+    FragileComment opac _
+        | opac <= 0.0 -> Blank
+        | otherwise ->
+            let sym = "--"
+                m = charMetrics '-'
+                (s, dy) = textLayout h m
+                segW = stringAdvance sym * s
+                count = max 1 (round (w / segW))
+             in color (makeColor opac opac opac opac) $
+                    pictures
+                        [ drawTextAt s x dy sym
+                        | i <- [0 .. count - 1]
+                        , let x = -w / 2 + fromIntegral i * segW
+                        ]
     BindTeleporter _ ->
         let sym = ">>="
             m = charMetrics '>'
@@ -155,11 +173,13 @@ drawTerrainType tt (w, h) = case tt of
                     | i <- [0 .. count - 1]
                     , let x = -w / 2 + fromIntegral i * segW
                     ]
-    PatternGuard _ _ ->
-        let m = charMetrics '|'
-            (s, dy) = textLayout h m
-            segW = charAdvance m * s
-         in color white $ drawTextAt s (-segW / 2) dy "|"
+    PatternGuard locked _
+        | locked ->
+            let m = charMetrics '|'
+                (s, dy) = textLayout h m
+                segW = charAdvance m * s
+             in color white $ drawTextAt s (-segW / 2) dy "|"
+        | otherwise -> Blank
     UnitPlatform ->
         let sym = "()"
             m = charMetrics '('
@@ -167,7 +187,7 @@ drawTerrainType tt (w, h) = case tt of
             textW = stringAdvance sym * s
          in color cyan $ drawTextAt s (-textW / 2) dy sym
     MainDoGoal ->
-        let sym = "main = do"
+        let sym = "main=do"
             m = charMetrics 'd'
             (s, dy) = textLayout h m
             textW = stringAdvance sym * s
@@ -178,13 +198,13 @@ drawTerrainType tt (w, h) = case tt of
             (s, dy) = textLayout h m
             textW = stringAdvance sym * s
          in color magenta $ drawTextAt s (-textW / 2) dy sym
-  where
-    padding = 1.0
 
-    textLayout boxHeight m =
-        let s = boxHeight / max 1.0 (charHeight m)
-            dy = -(charCenterY m * s) - padding
-         in (s, dy)
+drawTextAt :: Float -> Float -> Float -> String -> Picture
+drawTextAt s x y str =
+    translate x y $ scale s s (text str)
 
-    drawTextAt s x y str =
-        translate x y $ scale s s (text str)
+textLayout :: Float -> CharMetrics -> (Float, Float)
+textLayout boxHeight m =
+    let s = boxHeight / max 1.0 (charHeight m)
+        dy = -(charCenterY m * s) - padding
+     in (s, dy)
