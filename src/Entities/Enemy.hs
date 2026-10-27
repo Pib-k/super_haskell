@@ -34,6 +34,10 @@ instance Movable Enemy where
     setPos pos e = e{enemyPos = pos}
     setVel vel e = e{enemyVel = vel}
 
+instance Grounded Enemy where
+    setGrounded tf p = p{enemyGrounded = tf}
+    getGrounded = enemyGrounded
+
 instance Renderable Enemy where
     render dbg e =
         uncurry translate (getPos e) $
@@ -54,9 +58,7 @@ walk dt ts dir e
     | blocked || atCliff = landed{enemyType = TypeMismatch (-dir)}
     | otherwise = landed
   where
-    (_, vy) = getVel e
-    falling = setVel (dir * walkSpeed, vy + gravity * dt) e{enemyGrounded = False}
-    moved = applyVelocity dt falling
+    moved = stepMovement dt (setVx (dir * walkSpeed) e)
     landed = foldl resolveEnemy moved ts
 
     isWall c = c == Just FromLeft || c == Just FromRight
@@ -77,12 +79,5 @@ contains (px, py) t = abs (px - tx) * 2 <= tw && abs (py - ty) * 2 <= th
 resolveEnemy :: Enemy -> Terrain -> Enemy
 resolveEnemy e t = case checkCollision e t of
     Just FromBottom
-        | isSolid (tType t) ->
-            let (_, ty) = getPos t
-                (_, th) = getBox t
-                (_, eh) = getBox e
-                (ex, _) = getPos e
-                (vx, _) = getVel e
-                newY = ty + (th + eh) / 2
-             in setPos (ex, newY) (setVel (vx, 0) e{enemyGrounded = True})
+        | isSolid (tType t) -> snapToTop e t
     _ -> e
