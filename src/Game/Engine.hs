@@ -4,7 +4,7 @@ import Core.Classes
 import Core.Constants
 import Core.Types
 import Data.List (partition)
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, isNothing)
 import Entities.Collectible
 import Entities.Enemy
 import Entities.Player
@@ -25,10 +25,11 @@ stepLevel dt lvl =
         lvl
             { terrain = newTerrain
             , player = stepPlayer dt newTerrain (player lvl)
-            , enemies = map (stepEnemy dt newTerrain) (enemies lvl)
+            , enemies = map (stepEnemy dt pPos newTerrain) (enemies lvl)
             }
   where
     newTerrain = map (stepTerrain dt) (terrain lvl)
+    pPos = playerPos (player lvl)
 
 respawnCheck :: GameState -> GameState -> GameState
 respawnCheck before after
@@ -47,8 +48,8 @@ handleContacts :: LevelState -> LevelState
 handleContacts lvl =
     lvl
         { player = foldl' (flip applyItem) p' pickedUp
-        , enemies = survivors
-        , animations = map explosion stomped ++ animations lvl
+        , enemies = survivors ++ transformed
+        , animations = map explosion deadEnemies ++ animations lvl
         , terrain = map (triggerTerrain p') ts
         , collectibles = remaining
         }
@@ -56,12 +57,15 @@ handleContacts lvl =
     p = player lvl
     ts = terrain lvl
     hits = [(e, checkCollision p e) | e <- enemies lvl]
-    stomped = [e | (e, Just FromBottom) <- hits]
+    stompedHits = [e | (e, Just FromBottom) <- hits]
     hurtBy = [e | (e, Just d) <- hits, d /= FromBottom]
     survivors = [e | (e, c) <- hits, c /= Just FromBottom]
+    stompResults = [(e, stompEnemy e) | e <- stompedHits]
+    deadEnemies = [e | (e, Nothing) <- stompResults]
+    transformed = [newE | (_, Just newE) <- stompResults]
     (pickedUp, remaining) = partition (\c -> isJust (checkCollision p c)) $ collectibles lvl
     p'
-        | not (null stomped) = bounce p{score = score p + stompScore * length stomped}
+        | not (null stompedHits) = bounce p{score = score p + stompScore * length stompedHits}
         | not (null hurtBy) = hurt p
         | otherwise = p
 
