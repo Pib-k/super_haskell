@@ -19,6 +19,14 @@ testTerrain =
     , mkTerrain (180, 60) (180, 30) MainDoGoal
     ]
 
+testEnemy :: [Enemy]
+testEnemy =
+    [ Enemy (-40, -65) (30, 30) (TypeMismatch 1) (0, 0) False
+    , Enemy (-150, 10) (30, 30) (SpaceLeak 5) (0, 0) False
+    , Enemy (150, -100) (30, 30) (StrictnessBang IdleThunk) (0, 0) False
+    , Enemy (150, -150) (layerBox OuterMaybeT) (MonadTransformer OuterMaybeT) (0, 0) False
+    ]
+
 testLevel :: LevelState
 testLevel =
     LevelState
@@ -32,7 +40,7 @@ testLevel =
                 , score = 0
                 , collectedTrues = 0
                 }
-        , enemies = [Enemy (-40, -65) (30, 30) (TypeMismatch 1) (0, 0) False]
+        , enemies = testEnemy
         , terrain = testTerrain
         , collectibles = []
         , animations = []
