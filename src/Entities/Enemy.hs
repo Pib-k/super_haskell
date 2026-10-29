@@ -42,12 +42,19 @@ instance Renderable Enemy where
     render dbg e =
         uncurry translate (getPos e) $
             pictures
-                [ color orange $ uncurry rectangleSolid (getBox e)
-                , color c (uncurry rectangleWire (getBox e))
-                ]
+                [ color orange $ uncurry rectangleSolid (getBox e), color c (uncurry rectangleWire (getBox e))]
       where
         c = if dbg then dim white else makeColor 0.0 0.0 0.0 0.0
 
+renderEnemyWithSprite :: Picture -> Bool -> Enemy -> Picture
+renderEnemyWithSprite sprite dbg e =
+    uncurry translate (getPos e) $
+        pictures
+            [ scale 0.1 0.1 sprite
+            , color c (uncurry rectangleWire (getBox e))
+            ]
+  where
+    c = if dbg then dim white else makeColor 0.0 0.0 0.0 0.0
 stepEnemy :: Float -> [Terrain] -> Enemy -> Enemy
 stepEnemy dt ts e = case enemyType e of
     TypeMismatch dir -> walk dt ts dir e
