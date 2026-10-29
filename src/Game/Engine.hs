@@ -9,9 +9,9 @@ import Entities.Collectible
 import Entities.Enemy
 import Entities.Player
 import Entities.Terrain
+import Game.Animation
 import Game.Levels
 import Game.State
-import Game.Animation
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
@@ -26,7 +26,7 @@ stepLevel dt lvl =
         lvl
             { terrain = newTerrain
             , player = stepPlayer dt newTerrain (player lvl)
-            , enemies = map (stepEnemy dt newTerrain) (enemies lvl)
+            , enemies = map (stepEnemy dt pPos newTerrain) (enemies lvl)
             , animations = updateAnimation dt (animations lvl)
             }
   where
@@ -87,4 +87,3 @@ triggerTerrain p t = case tType t of
     PatternGuard True req
         | collectedTrues p >= req -> t{tType = PatternGuard False req}
     _ -> t
-    

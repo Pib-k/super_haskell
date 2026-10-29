@@ -37,15 +37,18 @@ instance Resetable Player where
             , collectedTrues = collectedTrues cur
             }
 
+-- Outdated because we have a sprite
 instance Renderable Player where
     render dbg p =
-        uncurry translate (getPos p) $
+        translate x y $
             pictures
-                [ color red $ uncurry rectangleSolid (getBox p)
-                , color c (uncurry rectangleWire (getBox p))
+                [ color red $ rectangleSolid bx by
+                , color c $ rectangleWire bx by
                 ]
       where
         c = if dbg then dim white else makeColor 0.0 0.0 0.0 0.0
+        (x, y) = getPos p
+        (bx, by) = getBox p
 
 instance Grounded Player where
     setGrounded tf p = p{isGrounded = tf}
@@ -112,8 +115,12 @@ playerKey _ _ p = p
 
 renderPlayerWithSprite :: Picture -> Bool -> Player -> Picture
 renderPlayerWithSprite sprite dbg p =
-    uncurry translate (getPos p) $
+    translate x y $
         pictures
-            [ scale 0.025 0.025 sprite, color c (uncurry rectangleWire (getBox p))]
+            [scale (0.025 * flipVal) 0.025 sprite, color c $ rectangleWire bx by]
   where
     c = if dbg then dim white else makeColor 0.0 0.0 0.0 0.0
+    (x, y) = getPos p
+    (vx, _) = getVel p
+    (bx, by) = getBox p
+    flipVal = if vx < 0.0 then -1.0 else 1.0

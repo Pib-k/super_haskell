@@ -62,7 +62,6 @@ library
       Core.Classes,
       Graphics.FontMetrics,
       Graphics.Render,
-      Graphics.RenderAnim,
       Entities.Terrain,
       Entities.Collectible,
       Entities.Player,

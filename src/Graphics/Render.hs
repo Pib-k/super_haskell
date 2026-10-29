@@ -1,17 +1,15 @@
 module Graphics.Render where
 
 import Core.Classes
-import Core.Constants
-import Entities.Enemy (renderEnemyWithSprite)
+import Core.Types
+import Entities.Enemy
 import Entities.Player (renderPlayerWithSprite)
 import Entities.Terrain ()
-import Entities.Collectible (CollectibleType (..), drawCollectibleType)
 import Game.State
 import Graphics.Gloss
-import Graphics.RenderAnim
 
-viewPure :: Picture -> Picture -> GameState -> Picture
-viewPure playerSprite enemySprite gs =
+viewPure :: Assets -> GameState -> Picture
+viewPure assets gs =
     case appMode gs of
         MainMenu -> label "Super Haskell - Press Enter"
         LevelSelection ->
@@ -21,10 +19,14 @@ viewPure playerSprite enemySprite gs =
                 dbg = isDebugMode gs
              in pictures
                     [ render dbg (terrain lvl)
-                    , renderPlayerWithSprite playerSprite dbg (player lvl)
-                    , pictures (map (renderEnemyWithSprite enemySprite dbg) (enemies lvl))
+                    , renderPlayerWithSprite (playerImg assets) dbg (player lvl)
+                    , pictures (map (\e -> renderEnemyWithSprite (spriteFor e) dbg e) (enemies lvl))
                     , render dbg (collectibles lvl)
                     , render dbg (animations lvl)
                     ]
   where
     label = translate (-300) 0 . scale 0.2 0.2 . color white . text
+
+spriteFor :: Enemy -> Maybe Picture
+spriteFor e = case enemyType e of
+    _ -> Nothing

@@ -6,19 +6,8 @@ import Entities.Collectible
 import Entities.Enemy
 import Entities.Player
 import Entities.Terrain
+import Game.Animation
 import System.Random (StdGen)
-
-data AnimationType = DefeatExplosion | MainDoFountain
-    deriving (Eq, Show)
-
-data Animation = Animation
-    { animPos :: Position
-    , animType :: AnimationType
-    , animTimer :: Float
-    , animDuration :: Float
-    , frameIndex :: Int
-    }
-    deriving (Eq, Show)
 
 data LevelState = LevelState
     { player :: Player
