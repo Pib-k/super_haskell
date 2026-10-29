@@ -16,7 +16,7 @@ initialState = do
     pure
         GameState
             { appMode = MainMenu
-            , currentLevel = thePrelude
+            , currentLevel = testLevel
             , availableLevels = ["The Prelude", "The Monad Maze", "The IO Underground"]
             , levelIndex = 0
             , isPaused = False
