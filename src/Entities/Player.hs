@@ -109,3 +109,11 @@ playerKey (Char 'w') Down p
     | isGrounded p = setVy jumpSpeed p
 playerKey (Char 's') Down p = setVy fastFallSpeed p
 playerKey _ _ p = p
+
+renderPlayerWithSprite :: Picture -> Bool -> Player -> Picture
+renderPlayerWithSprite sprite dbg p =
+    uncurry translate (getPos p) $
+        pictures
+            [ scale 0.025 0.025 sprite, color c (uncurry rectangleWire (getBox p))]
+  where
+    c = if dbg then dim white else makeColor 0.0 0.0 0.0 0.0

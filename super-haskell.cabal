@@ -62,6 +62,7 @@ library
       Core.Classes,
       Graphics.FontMetrics,
       Graphics.Render,
+      Graphics.RenderAnim,
       Entities.Terrain,
       Entities.Collectible,
       Entities.Player,
@@ -70,10 +71,12 @@ library
       Game.Engine,
       Game.Levels,
       Game.Input,
+      Game.Animation,
       Storage.Save
 
     build-depends:    base ^>=4.20.2.0
                     , gloss
+                    , gloss-juicy
                     , random
                     , aeson
                     , bytestring

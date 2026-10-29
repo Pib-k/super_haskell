@@ -26,8 +26,8 @@ initialState = do
             , isDebugMode = False
             }
 
-viewWorld :: GameState -> IO Picture
-viewWorld = pure . viewPure
+viewWorld :: Picture -> Picture -> GameState -> IO Picture
+viewWorld playerSprite enemySprite = pure . viewPure playerSprite enemySprite
 
 stepWorld :: Float -> GameState -> IO GameState
 stepWorld dt = pure . stepPure dt
@@ -43,12 +43,16 @@ handleInput ev gs = pure (handleInputPure ev gs)
 
 main :: IO ()
 main = do
+
+    playerSprite <- loadBMP "assets/playerSprite.bmp"
+    enemySprite <- loadBMP "assets/typeMismatch.bmp"
+
     state0 <- initialState
     playIO
         (InWindow "Super Haskell" (800, 600) (100, 100))
         black
         60
         state0
-        viewWorld
+        (viewWorld playerSprite enemySprite)
         handleInput
         stepWorld

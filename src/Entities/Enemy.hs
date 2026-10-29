@@ -88,8 +88,17 @@ instance Renderable Enemy where
         (w, h) = getBox e
         (x, y) = getPos e
 
-stepEnemy :: Float -> Position -> [Terrain] -> Enemy -> Enemy
-stepEnemy dt playerPos ts e = case enemyType e of
+renderEnemyWithSprite :: Picture -> Bool -> Enemy -> Picture
+renderEnemyWithSprite sprite dbg e =
+    uncurry translate (getPos e) $
+        pictures
+            [ scale 0.1 0.1 sprite
+            , color c (uncurry rectangleWire (getBox e))
+            ]
+  where
+    c = if dbg then dim white else makeColor 0.0 0.0 0.0 0.0
+stepEnemy :: Float -> [Terrain] -> Enemy -> Enemy
+stepEnemy dt ts e = case enemyType e of
     TypeMismatch dir -> walk dt ts dir e
     SpaceLeak s -> e{enemyBox = (w + s * dt, h + s * dt)}
     StrictnessBang phase -> stepBang dt playerPos ts e phase
