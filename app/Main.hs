@@ -1,6 +1,8 @@
 module Main (main) where
 
 import Core.Types
+import Foreign.C (withCString)
+import GHC.ForeignPtr (newForeignPtr_)
 import Game.Engine (stepPure)
 import Game.Input (handleInputPure, normalize)
 import Game.Levels
@@ -8,12 +10,17 @@ import Game.State (AppMode (..), GameState (..))
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game (Event (..), Key (..), KeyState (..), playIO)
 import Graphics.Render (viewPure)
+import qualified SDL
+import qualified SDL.Mixer as Mixer
+import qualified SDL.Raw.Mixer as RawMixer
 import Storage.Save
-import System.Random (getStdGen)
+import System.Random (getStdGen, uniform)
+import Unsafe.Coerce (unsafeCoerce)
 
 initialState :: IO GameState
 initialState = do
     gen <- getStdGen
+    let (seed, gen') = uniform gen
     pure
         GameState
             { appMode = MainMenu
@@ -23,16 +30,26 @@ initialState = do
             , isPaused = False
             , globalScore = 0
             , highScore = 0
-            , rngSeed = 0
-            , rngState = gen
+            , rngSeed = seed
+            , rngState = gen'
             , isDebugMode = False
             }
+initMusic :: FilePath -> IO Mixer.Music
+initMusic path = do
+    SDL.initialize [SDL.InitAudio]
+    Mixer.openAudio Mixer.defaultAudio 4096
+    -- SDL is a C package. We need a foreignPtr in order to prevent
+    -- garbage collection (and thus the stopping of the music).
+    rawPtr <- withCString path RawMixer.loadMUS
+    _ <- RawMixer.playMusic rawPtr (-1)
+    fptr <- newForeignPtr_ rawPtr
+    pure (unsafeCoerce fptr)
 
 viewWorld :: Assets -> GameState -> IO Picture
 viewWorld assets = pure . viewPure assets
 
 stepWorld :: Float -> GameState -> IO GameState
-stepWorld dt = pure . stepPure dt
+stepWorld dt gs = pure $ stepPure dt gs
 
 handleInput :: Event -> GameState -> IO GameState
 handleInput ev@(EventKey key Down _ _) gs
@@ -47,7 +64,8 @@ loadAssets :: IO Assets
 loadAssets = do
     playerSprite <- loadBMP "assets/playerSprite.bmp"
     typeMismatchSprite <- loadBMP "assets/typeMismatch.bmp"
-    pure Assets{playerImg = playerSprite, typeMismatchImg = Just typeMismatchSprite, spaceLeakImg = Nothing}
+    music <- initMusic "assets/game_song.wav"
+    pure Assets{playerImg = playerSprite, typeMismatchImg = Just typeMismatchSprite, spaceLeakImg = Nothing, gameMusic = music}
 
 main :: IO ()
 main = do

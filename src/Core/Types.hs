@@ -1,6 +1,7 @@
 module Core.Types where
 
 import Graphics.Gloss (Picture)
+import qualified SDL.Mixer as Mixer
 
 type Position = (Float, Float)
 type Velocity = (Float, Float)
@@ -13,4 +14,5 @@ data Assets = Assets
     { playerImg :: Picture
     , typeMismatchImg :: Maybe Picture
     , spaceLeakImg :: Maybe Picture
+    , gameMusic :: !Mixer.Music
     }

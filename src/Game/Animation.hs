@@ -12,6 +12,7 @@ import Entities.Collectible
 import Entities.Enemy
 import GHC.Generics
 import Graphics.Gloss
+import System.Random
 
 data AnimationType = DefeatExplosion | MainDoFountain
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
@@ -22,6 +23,7 @@ data Animation = Animation
     , animTimer :: Float
     , animDuration :: Float
     , frameIndex :: Int
+    , seed :: Int
     }
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
@@ -33,6 +35,26 @@ explosion e =
         , animTimer = 0
         , animDuration = explosionDuration
         , frameIndex = 0
+        , seed = 0
+        }
+
+data FountainParticle = FP
+    { fpSymbol :: String
+    , fpLaunchTime :: Float
+    , fpColor :: Color
+    , fpVx :: Float
+    , fpVy :: Float
+    }
+
+mainDoFountain :: Position -> Int -> Animation
+mainDoFountain pos s =
+    Animation
+        { animPos = pos
+        , animType = MainDoFountain
+        , animTimer = 0
+        , animDuration = mainDoAnimationDuration
+        , frameIndex = 0
+        , seed = s
         }
 
 instance Renderable Animation where
@@ -40,7 +62,7 @@ instance Renderable Animation where
         uncurry translate (animPos a) $
             case animType a of
                 DefeatExplosion -> explosionPicture a
-                MainDoFountain -> blank
+                MainDoFountain -> fountainPicture a
 
 explosionPicture :: Animation -> Picture
 explosionPicture a =
@@ -59,6 +81,48 @@ explosionPicture a =
         , (FloatingTrue, 65, 250)
         , (SemiGroup, 80, 180)
         ]
+
+fountainPicture :: Animation -> Picture
+fountainPicture a = case animType a of
+    MainDoFountain ->
+        pictures
+            [ if tLocal >= 0 && tLocal < 1.2
+                then
+                    translate (fpVx p * tLocal) (fpVy p * tLocal + 0.5 * gravity * tLocal * tLocal) $
+                        color (fpColor p) $
+                            scale 0.1 0.1 $
+                                text (fpSymbol p)
+                else Blank
+            | p <- generateParticles $ seed a
+            , let tLocal = animTimer a - fpLaunchTime p
+            ]
+    _ -> Blank
+
+generateParticles :: Int -> [FountainParticle]
+generateParticles s =
+    fst $
+        foldl
+            ( \(acc, g) i ->
+                let (p, g') = makeParticle i g
+                 in (p : acc, g')
+            )
+            ([], gen0)
+            [0 .. 29]
+  where
+    gen0 = mkStdGen s
+
+makeParticle :: Int -> StdGen -> (FountainParticle, StdGen)
+makeParticle i gen =
+    let (idx, g1) = uniformR (0, length pool - 1) gen
+        (vx, g2) = uniformR (-90.0, 90.0) g1
+        (vy, g3) = uniformR (380.0, 560.0) g2
+        (jit, g4) = uniformR (0.0, 0.1) g3
+        (cIdx, g5) = uniformR (0, length colorPool - 1) g4
+        launchTime = (fromIntegral i / 30.0) * 3.5 + jit
+     in (FP (pool !! idx) launchTime (colorPool !! cIdx) vx vy, g5)
+  where
+    colorPool = [yellow, cyan, magenta, green, orange, rose, violet, aquamarine, white]
+    pool = ["map", "filter", "foldr", "(>>=)", "(<$>)", "pure", "id", "(.)", "join", "fix", "λ"]
 
 updateAnimation :: Float -> [Animation] -> [Animation]
 updateAnimation dt = filter alive . map tick

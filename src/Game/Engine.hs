@@ -4,7 +4,7 @@ import Core.Classes
 import Core.Constants
 import Core.Types
 import Data.List (partition)
-import Data.Maybe (isJust, isNothing)
+import Data.Maybe (isJust)
 import Entities.Collectible
 import Entities.Enemy
 import Entities.Player
@@ -15,13 +15,13 @@ import Game.State
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
-    Playing | not (isPaused gs) -> updateHighScore $ gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step) gs))
+    Playing | not (isPaused gs) -> updateHighScore $ gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step (rngSeed gs)) gs))
     _ -> gs
   where
     step = min dt maxStep
 
-stepLevel :: Float -> LevelState -> LevelState
-stepLevel dt lvl =
+stepLevel :: Float -> Int -> LevelState -> LevelState
+stepLevel dt s lvl =
     handleContacts
         lvl
             { terrain = newTerrain
@@ -29,6 +29,7 @@ stepLevel dt lvl =
             , enemies = map (stepEnemy dt pPos newTerrain) (enemies lvl)
             , animations = updateAnimation dt (animations lvl)
             }
+        s
   where
     newTerrain = map (stepTerrain dt) (terrain lvl)
     pPos = playerPos (player lvl)
@@ -46,12 +47,12 @@ gameOverCheck gs
         gs{appMode = MainMenu, currentLevel = testLevel}
     | otherwise = gs
 
-handleContacts :: LevelState -> LevelState
-handleContacts lvl =
+handleContacts :: LevelState -> Int -> LevelState
+handleContacts lvl s =
     lvl
         { player = foldl' (flip applyItem) p' pickedUp
         , enemies = survivors ++ transformed
-        , animations = map explosion deadEnemies ++ animations lvl
+        , animations = newGoalAnims ++ map explosion deadEnemies ++ animations lvl
         , terrain = map (triggerTerrain p') ts
         , collectibles = remaining
         }
@@ -70,6 +71,11 @@ handleContacts lvl =
         | not (null stompedHits) = bounce p{score = score p + stompScore * length stompedHits}
         | not (null hurtBy) = hurt p
         | otherwise = p
+    goalHits = [t | t <- ts, tType t == MainDoGoal, isJust (checkCollision p t)]
+    hasFountain = any (\a -> animType a == MainDoFountain) (animations lvl)
+    newGoalAnims
+        | not (null goalHits) && not hasFountain = [mainDoFountain (getPos (head goalHits)) s]
+        | otherwise = []
 
 applyItem :: Collectible -> Player -> Player
 applyItem c p = case collectType c of
