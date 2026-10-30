@@ -1,14 +1,20 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Game.Animation where
 
 import Core.Classes
 import Core.Constants
 import Core.Types
+import Data.Aeson (ToJSON)
+import Data.Aeson.Types (FromJSON)
 import Entities.Collectible
 import Entities.Enemy
+import GHC.Generics
 import Graphics.Gloss
 
 data AnimationType = DefeatExplosion | MainDoFountain
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 data Animation = Animation
     { animPos :: Position
@@ -17,7 +23,7 @@ data Animation = Animation
     , animDuration :: Float
     , frameIndex :: Int
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 explosion :: Enemy -> Animation
 explosion e =

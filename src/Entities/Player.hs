@@ -1,11 +1,16 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Entities.Player where
 
 import Core.Classes
 import Core.Constants
 import Core.Types
-import Data.List
+import Data.Aeson (FromJSON)
+import Data.Aeson.Types (ToJSON)
 import Data.Maybe (isJust)
 import Entities.Terrain
+import GHC.Generics (Generic)
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game (Key (..), KeyState (..))
 
@@ -18,7 +23,7 @@ data Player = Player
     , score :: Int
     , collectedTrues :: Int
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, FromJSON, ToJSON, Generic)
 
 instance Collidable Player where
     getPos = playerPos

@@ -34,7 +34,7 @@ testLevel =
             Player
                 { playerPos = (-85, 0)
                 , playerVel = (0, 0)
-                , playerBox = (30, 40)
+                , playerBox = (30, 30)
                 , isGrounded = False
                 , health = 3
                 , score = 0

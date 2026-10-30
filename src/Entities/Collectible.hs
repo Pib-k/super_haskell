@@ -1,22 +1,25 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Entities.Collectible where
 
 import Core.Classes
 import Core.Types
-import Entities.Terrain (Terrain (tType), drawTextAt, textLayout)
+import Data.Aeson
+import Entities.Terrain (drawTextAt, textLayout)
+import GHC.Generics
 import Graphics.FontMetrics
 import Graphics.Gloss
-import Graphics.Gloss (translate)
-import Graphics.Gloss.Data.Picture (color)
 
 data CollectibleType = FloatingTrue | SemiGroup
-    deriving (Eq, Show)
+    deriving (Eq, Show, ToJSON, Generic, FromJSON)
 
 data Collectible = Collectible
     { collectPos :: Position
     , collectBox :: BoundingBox
     , collectType :: CollectibleType
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, ToJSON, Generic, FromJSON)
 
 instance Collidable Collectible where
     getPos = collectPos

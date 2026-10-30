@@ -15,7 +15,7 @@ import Game.State
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
-    Playing | not (isPaused gs) -> gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step) gs))
+    Playing | not (isPaused gs) -> updateHighScore $ gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step) gs))
     _ -> gs
   where
     step = min dt maxStep
@@ -87,3 +87,8 @@ triggerTerrain p t = case tType t of
     PatternGuard True req
         | collectedTrues p >= req -> t{tType = PatternGuard False req}
     _ -> t
+
+updateHighScore :: GameState -> GameState
+updateHighScore gs =
+    let currentScore = score (player (currentLevel gs))
+     in gs{highScore = max (highScore gs) currentScore}

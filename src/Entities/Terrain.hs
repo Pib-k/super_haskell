@@ -1,8 +1,14 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Entities.Terrain where
 
 import Core.Classes
 import Core.Constants
 import Core.Types
+import Data.Aeson (ToJSON)
+import Data.Aeson.Types (FromJSON)
+import GHC.Generics
 import Graphics.FontMetrics
 import Graphics.Gloss
 
@@ -16,14 +22,14 @@ data TerrainType
     | InfiniteList {currentOffset :: Float, maxOffset :: Float, velocity :: Float}
     | MainDoGoal
     | UnitPlatform
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 data Terrain = Terrain
     { terrainPos :: Position
     , terrainBox :: BoundingBox
     , tType :: TerrainType
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 instance Collidable Terrain where
     getPos = terrainPos

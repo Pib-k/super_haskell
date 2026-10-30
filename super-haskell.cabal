@@ -71,6 +71,7 @@ library
       Game.Levels,
       Game.Input,
       Game.Animation,
+      Game.Random,
       Storage.Save
 
     build-depends:    base ^>=4.20.2.0
@@ -78,6 +79,7 @@ library
                     , gloss-juicy
                     , random
                     , aeson
+                    , splitmix
                     , bytestring
                     , text
 

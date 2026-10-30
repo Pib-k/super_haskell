@@ -1,15 +1,21 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Entities.Enemy where
 
 import Core.Classes
 import Core.Constants
 import Core.Types
+import Data.Aeson (ToJSON)
+import Data.Aeson.Types (FromJSON)
 import Data.Maybe (isJust)
 import Entities.Terrain
+import GHC.Generics (Generic)
 import Graphics.FontMetrics
 import Graphics.Gloss
 
 data TransformerLayer = OuterMaybeT | MiddleStateT | BaseIO
-    deriving (Eq, Show)
+    deriving (Eq, Show, FromJSON, ToJSON, Generic)
 
 layerSpeed :: TransformerLayer -> Float
 layerSpeed OuterMaybeT = 60.0
@@ -29,14 +35,14 @@ data EnemyType
     | SpaceLeak {size :: Float}
     | MonadTransformer {layer :: TransformerLayer}
     | StrictnessBang {bangPhase :: BangPhase}
-    deriving (Eq, Show)
+    deriving (Eq, Show, FromJSON, ToJSON, Generic)
 
 data BangPhase
     = IdleThunk
     | Forcing Float
     | StrictCharge Float Float
     | NormalForm Float
-    deriving (Eq, Show)
+    deriving (Eq, Show, FromJSON, ToJSON, Generic)
 
 data Enemy = Enemy
     { enemyPos :: Position
@@ -45,7 +51,7 @@ data Enemy = Enemy
     , enemyVel :: Velocity
     , enemyGrounded :: Bool
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, FromJSON, ToJSON, Generic)
 
 instance Collidable Enemy where
     getPos = enemyPos

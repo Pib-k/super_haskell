@@ -8,7 +8,7 @@ import Game.State (AppMode (..), GameState (..))
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game (Event (..), Key (..), KeyState (..), playIO)
 import Graphics.Render (viewPure)
-import Storage.Save (applySave, loadSave, saveFile, saveProgress)
+import Storage.Save
 import System.Random (getStdGen)
 
 initialState :: IO GameState
@@ -22,6 +22,7 @@ initialState = do
             , levelIndex = 0
             , isPaused = False
             , globalScore = 0
+            , highScore = 0
             , rngSeed = 0
             , rngState = gen
             , isDebugMode = False
@@ -36,7 +37,7 @@ stepWorld dt = pure . stepPure dt
 handleInput :: Event -> GameState -> IO GameState
 handleInput ev@(EventKey key Down _ _) gs
     | k == Char 'k' = saveProgress saveFile gs >> pure gs
-    | k == Char 'l' = maybe gs (`applySave` gs) <$> loadSave saveFile
+    | k == Char 'l' = maybe gs id <$> loadSave saveFile
     | otherwise = pure (handleInputPure ev gs)
   where
     k = normalize key
