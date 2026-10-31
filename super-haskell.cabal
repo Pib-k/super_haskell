@@ -71,6 +71,7 @@ library
       Game.Levels,
       Game.Input,
       Game.Animation,
+      Game.Random,
       Storage.Save
 
     build-depends:    base ^>=4.20.2.0
@@ -78,6 +79,9 @@ library
                     , gloss-juicy
                     , random
                     , aeson
+                    , splitmix
+                    , sdl2
+                    , sdl2-mixer
                     , bytestring
                     , text
 
@@ -88,7 +92,9 @@ executable super-haskell
     import:           warnings
     main-is:          Main.hs
 
-    build-depends:    base ^>=4.20.2.0
+    build-depends:    sdl2-mixer ^>=1.2.0.0
+                    , sdl2 ^>=2.5.6.1
+                    , base ^>=4.20.2.0
                     , gloss
                     , random
                     , super-haskell

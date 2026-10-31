@@ -19,9 +19,10 @@ maxStep = 1 / 60
 walkSpeed :: Float
 walkSpeed = 60
 
-bounceSpeed, explosionDuration :: Float
+bounceSpeed, explosionDuration, mainDoAnimationDuration :: Float
 bounceSpeed = 300
 explosionDuration = 0.5
+mainDoAnimationDuration = 5.0
 
 stompScore, explosionFrames :: Int
 stompScore = 100

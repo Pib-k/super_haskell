@@ -16,7 +16,7 @@ testTerrain =
     , mkTerrain (0, 0) (30, 90) (PatternGuard True 3)
     , mkTerrain (250, -60) (180, 30) (InfiniteList 0.0 100.0 50.0)
     , mkTerrain (-180, 60) (100, 30) (BindTeleporter (180, 60))
-    , mkTerrain (180, 60) (180, 30) MainDoGoal
+    , mkTerrain (180, -30) (50, 30) MainDoGoal
     ]
 
 testEnemy :: [Enemy]
@@ -34,7 +34,7 @@ testLevel =
             Player
                 { playerPos = (-85, 0)
                 , playerVel = (0, 0)
-                , playerBox = (30, 40)
+                , playerBox = (30, 30)
                 , isGrounded = False
                 , health = 3
                 , score = 0

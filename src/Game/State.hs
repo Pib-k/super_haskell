@@ -1,12 +1,17 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Game.State where
 
 import Core.Classes
-import Core.Types
+import Data.Aeson (FromJSON, ToJSON)
 import Entities.Collectible
 import Entities.Enemy
 import Entities.Player
 import Entities.Terrain
+import GHC.Generics
 import Game.Animation
+import Game.Random ()
 import System.Random (StdGen)
 
 data LevelState = LevelState
@@ -17,7 +22,7 @@ data LevelState = LevelState
     , animations :: [Animation]
     , bounds :: (Float, Float)
     }
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 instance Resetable LevelState where
     resetToDef start cur =
@@ -28,7 +33,7 @@ instance Resetable LevelState where
             }
 
 data AppMode = MainMenu | LevelSelection | Playing
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 data GameState = GameState
     { appMode :: AppMode
@@ -37,11 +42,12 @@ data GameState = GameState
     , levelIndex :: Int
     , isPaused :: Bool
     , globalScore :: Int
+    , highScore :: Int
     , rngSeed :: Int
     , rngState :: StdGen
     , isDebugMode :: Bool
     }
-    deriving (Show)
+    deriving (Show, Generic, FromJSON, ToJSON)
 
 modifyPlayer :: (Player -> Player) -> GameState -> GameState
 modifyPlayer f gs = gs{currentLevel = lvl{player = f (player lvl)}}
