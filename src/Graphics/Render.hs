@@ -9,6 +9,7 @@ import Graphics.Camera (withCamera)
 import Graphics.Menu
 import Game.State
 import Graphics.Gloss
+import Graphics.Lives
 
 viewPure :: Assets -> GameState -> Picture
 viewPure assets gs =
@@ -19,12 +20,16 @@ viewPure assets gs =
         Playing ->
             let lvl = currentLevel gs
                 dbg = isDebugMode gs
-             in withCamera lvl $ pictures
-                    [ render dbg (terrain lvl)
-                    , renderPlayerWithSprite (playerImg assets) dbg (player lvl)
-                    , pictures (map (\e -> renderEnemyWithSprite (spriteFor e) dbg e) (enemies lvl))
-                    , render dbg (collectibles lvl)
-                    , render dbg (animations lvl)
+            in pictures
+                    [ withCamera lvl $
+                        pictures
+                            [ render dbg (terrain lvl)
+                            , renderPlayerWithSprite (playerImg assets) dbg (player lvl)
+                            , pictures (map (\e -> renderEnemyWithSprite (spriteFor e) dbg e) (enemies lvl))
+                            , render dbg (collectibles lvl)
+                            , render dbg (animations lvl)
+                            ]
+                    , livesHud (health (player lvl))
                     ]
         LevelComplete ->
             let p = player (currentLevel gs)
@@ -48,4 +53,5 @@ viewPure assets gs =
 spriteFor :: Enemy -> Maybe Picture
 spriteFor e = case enemyType e of
     _ -> Nothing
+
 

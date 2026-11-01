@@ -1,11 +1,6 @@
 module Graphics.Menu where
 
-import Core.Classes
-import Core.Types
-import Entities.Enemy
-import Entities.Player (renderPlayerWithSprite, Player (..))
 import Entities.Terrain ()
-import Graphics.Camera (withCamera)
 import Graphics.FontMetrics
 import Core.Constants
 import Game.State
@@ -21,7 +16,7 @@ mainMenuPicture gs =
     pictures
         [ backdrop
         , centered 0.5 130 yellow "Super Haskell"
-        , centered 0.15 95 (greyN 0.6) "main :: IO ()"
+        , centered 0.15 95 (greyN 0.6) "Made by: Pieter de Kruiff & Dimitrije Miljkovic"
         , pictures (zipWith item [0 ..] menuItems)
         , centered 0.12 (-230) (greyN 0.5) "W/S: select    Enter: confirm"
         , centered 0.12 (-255) (greyN 0.5) ("High score: " ++ show (highScore gs))
