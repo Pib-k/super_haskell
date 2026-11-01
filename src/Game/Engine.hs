@@ -15,10 +15,19 @@ import Game.State
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
-    Playing | not (isPaused gs) -> updateHighScore $ gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step (rngSeed gs)) gs))
+    Playing
+        | not (isPaused gs) ->
+            finishCheck $ updateHighScore $ gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step (rngSeed gs)) gs))
     _ -> gs
   where
     step = min dt maxStep
+    finishCheck g
+        | appMode g == Playing && fountainEnds = g{appMode = LevelComplete}
+        | otherwise = g
+    fountainEnds =
+        any
+            (\a -> animType a == MainDoFountain && animTimer a + step >= animDuration a)
+            (animations (currentLevel gs))
 
 stepLevel :: Float -> Int -> LevelState -> LevelState
 stepLevel dt s lvl =
@@ -36,15 +45,14 @@ stepLevel dt s lvl =
 
 respawnCheck :: GameState -> GameState -> GameState
 respawnCheck before after
-    | lives after < lives before = modifyLevel (resetToDef testLevel) after
+    | lives after < lives before = modifyLevel (resetToDef (levelFor (levelIndex after))) after
     | otherwise = after
   where
     lives = health . player . currentLevel
 
 gameOverCheck :: GameState -> GameState
 gameOverCheck gs
-    | health (player (currentLevel gs)) <= 0 =
-        gs{appMode = MainMenu, currentLevel = testLevel}
+    | health (player (currentLevel gs)) <= 0 = gs{appMode = GameOver}
     | otherwise = gs
 
 handleContacts :: LevelState -> Int -> LevelState
@@ -92,7 +100,9 @@ applyItem c p = case collectType c of
             { collectedTrues = collectedTrues p + 1
             , score = score p + 50
             }
-    SemiGroup -> p{health = health p + 1}
+    SemiGroup
+        | health p < maxHealth -> p{health = health p + 1}
+        | otherwise -> p{score = score p + collectibleScore}
 
 triggerTerrain :: Player -> Terrain -> Terrain
 triggerTerrain p t = case tType t of

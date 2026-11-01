@@ -46,3 +46,18 @@ collectibleSize = (20, 20)
 
 collectibleScore :: Int
 collectibleScore = 50
+
+screenHalfWidth, levelWidth, sectionWidth :: Float
+screenHalfWidth = 400
+levelWidth = 2400
+sectionWidth = 800
+
+flagThickness, flagHeight :: Float
+flagThickness = 26
+flagHeight = 120
+
+maxHealth :: Int
+maxHealth = 3
+
+menuItems :: [String]
+menuItems = ["Start Game", "Level Select", "Controls"]

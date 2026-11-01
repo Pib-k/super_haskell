@@ -27,12 +27,14 @@ data LevelState = LevelState
 instance Resetable LevelState where
     resetToDef start cur =
         cur
-            { player = resetToDef (player start) (player cur)
+            { player = (resetToDef (player start) (player cur)){collectedTrues = 0}
             , enemies = enemies start
+            , terrain = terrain start
+            , collectibles = collectibles start
             , animations = []
             }
 
-data AppMode = MainMenu | LevelSelection | Playing
+data AppMode = MainMenu | LevelSelection | Playing | LevelComplete | GameOver | Controls
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 data GameState = GameState
@@ -46,13 +48,14 @@ data GameState = GameState
     , rngSeed :: Int
     , rngState :: StdGen
     , isDebugMode :: Bool
+    , menuIndex :: Int
     }
     deriving (Show, Generic, FromJSON, ToJSON)
 
 modifyPlayer :: (Player -> Player) -> GameState -> GameState
-modifyPlayer f gs = gs{currentLevel = lvl{player = f (player lvl)}}
+modifyPlayer f gs = gs{currentLevel = lvl{player = f (player lvl)}, menuIndex = 0}
   where
     lvl = currentLevel gs
 
 modifyLevel :: (LevelState -> LevelState) -> GameState -> GameState
-modifyLevel f gs = gs{currentLevel = f (currentLevel gs)}
+modifyLevel f gs = gs{currentLevel = f (currentLevel gs), menuIndex = 0}

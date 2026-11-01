@@ -62,6 +62,8 @@ library
       Core.Classes,
       Graphics.FontMetrics,
       Graphics.Render,
+      Graphics.Camera,
+      Graphics.Menu,
       Entities.Terrain,
       Entities.Collectible,
       Entities.Player,
