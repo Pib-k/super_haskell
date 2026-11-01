@@ -1,6 +1,6 @@
 module Core.Constants where
 
-import Core.Types (Position)
+import Core.Types (Position, BoundingBox)
 
 moveSpeed, jumpSpeed, fastFallSpeed :: Float
 moveSpeed = 200
@@ -40,3 +40,9 @@ particleCount = 8
 explosionRadius, particleSize :: Float
 explosionRadius = 40
 particleSize = 5
+
+collectibleSize :: BoundingBox
+collectibleSize = (20, 20)
+
+collectibleScore :: Int
+collectibleScore = 50

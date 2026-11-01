@@ -52,9 +52,9 @@ handleContacts lvl s =
     lvl
         { player = foldl' (flip applyItem) p' pickedUp
         , enemies = survivors ++ transformed
-        , animations = newGoalAnims ++ map explosion deadEnemies ++ animations lvl
+        , animations = newGoalAnims ++ animations lvl
         , terrain = map (triggerTerrain p') ts
-        , collectibles = remaining
+        , collectibles = map dropCollectible deadEnemies ++ remaining
         }
   where
     p = player lvl
@@ -76,6 +76,14 @@ handleContacts lvl s =
     newGoalAnims
         | not (null goalHits) && not hasFountain = [mainDoFountain (getPos (head goalHits)) s]
         | otherwise = []
+
+dropCollectible :: Enemy -> Collectible
+dropCollectible e =
+    Collectible
+        { collectPos = getPos e
+        , collectBox = collectibleSize
+        , collectType = SemiGroup
+        }
 
 applyItem :: Collectible -> Player -> Player
 applyItem c p = case collectType c of
