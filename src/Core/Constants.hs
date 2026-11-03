@@ -1,6 +1,6 @@
 module Core.Constants where
 
-import Core.Types (Position, BoundingBox)
+import Core.Types (BoundingBox, Position)
 
 moveSpeed, jumpSpeed, fastFallSpeed :: Float
 moveSpeed = 200
@@ -59,6 +59,8 @@ flagHeight = 120
 
 maxHealth :: Int
 maxHealth = 3
+levelPlayerBox :: BoundingBox
+levelPlayerBox = (30, 30)
 
 menuItems :: [String]
 menuItems = ["Start Game", "Level Select", "Controls"]

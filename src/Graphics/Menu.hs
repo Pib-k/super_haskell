@@ -1,11 +1,12 @@
 module Graphics.Menu where
 
-import Entities.Terrain ()
-import Graphics.FontMetrics
 import Core.Constants
+import Core.Types (Levels (..), PauseOption (..))
+import Entities.Terrain ()
+import Game.Levels (allLevels)
 import Game.State
+import Graphics.FontMetrics
 import Graphics.Gloss
-
 
 centered :: Float -> Float -> Color -> String -> Picture
 centered s y c str =
@@ -28,6 +29,22 @@ mainMenuPicture gs =
         | otherwise = centered 0.2 y (greyN 0.7) label
       where
         y = 10 - fromIntegral i * 60
+
+pauseMenuPicture :: PauseOption -> Picture
+pauseMenuPicture selected =
+    pictures
+        [ backdrop
+        , centered 0.4 80 yellow "Paused"
+        , pictures (zipWith item [0 ..] [minBound .. maxBound])
+        , centered 0.12 (-180) (greyN 0.5) "W/S: select    Enter: confirm    P: resume"
+        ]
+  where
+    item :: Int -> PauseOption -> Picture
+    item i opt
+        | opt == selected = centered 0.25 y yellow ("> " ++ pauseOptionLabel opt ++ " <")
+        | otherwise = centered 0.2 y (greyN 0.7) (pauseOptionLabel opt)
+      where
+        y = 0 - fromIntegral i * 50
 
 backdrop :: Picture
 backdrop = color (makeColor 0.2 0.2 0.3 1) (rectangleWire 760 560)
@@ -55,13 +72,24 @@ levelSelectPicture gs =
     pictures
         [ backdrop
         , centered 0.4 130 yellow "Select Level"
-        , pictures (zipWith item [0 ..] (availableLevels gs))
+        , pictures (zipWith item [0 ..] allLevels)
         , centered 0.12 (-230) (greyN 0.5) "W/S: select    Enter: play    M: back"
         ]
   where
-    item :: Int -> String -> Picture
-    item i name
-        | i == levelIndex gs = centered 0.25 y yellow ("> " ++ name ++ " <")
+    item :: Int -> Levels -> Picture
+    item idx l
+        | l == level gs = centered 0.25 y yellow ("> " ++ name ++ " <")
         | otherwise = centered 0.2 y (greyN 0.7) name
       where
-        y = 30 - fromIntegral i * 60
+        name = levelTitle l
+        y = 30 - fromIntegral idx * 60
+
+levelTitle :: Levels -> String
+levelTitle l = case l of
+    MonadMaze -> "The Monad Maze"
+    Prelude -> "The Prelude"
+    IOUnderground -> "The IO Underground"
+
+pauseOptionLabel :: PauseOption -> String
+pauseOptionLabel Resume = "Resume"
+pauseOptionLabel ReturnMainMenu = "Main Menu"

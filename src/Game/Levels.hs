@@ -1,18 +1,27 @@
 module Game.Levels where
 
+import Core.Constants
+import Core.Types (Levels (..), Position)
 import Entities.Collectible
 import Entities.Enemy
 import Entities.Player
 import Entities.Terrain
-import Core.Constants
 import Game.State
-import Core.Types (Position, BoundingBox)
 
 data Section = Section
     { secTerrain :: [Terrain]
     , secEnemies :: [Enemy]
     , secItems :: [Collectible]
     }
+
+levelFor :: Levels -> LevelState
+levelFor l = case l of
+    Prelude -> thePrelude
+    MonadMaze -> theMonadMaze
+    IOUnderground -> theIOUnderground
+
+allLevels :: [Levels]
+allLevels = [minBound .. maxBound]
 
 testTerrain :: [Terrain]
 testTerrain =
@@ -42,7 +51,7 @@ testLevel =
             Player
                 { playerPos = (-85, 0)
                 , playerVel = (0, 0)
-                , playerBox = (30, 30)
+                , playerBox = levelPlayerBox
                 , isGrounded = False
                 , health = 3
                 , score = 0
@@ -54,9 +63,6 @@ testLevel =
         , animations = []
         , bounds = (800, 600)
         }
-
-levelPlayerBox :: BoundingBox
-levelPlayerBox = (30, 40)
 
 newPlayer :: Position -> Player
 newPlayer pos =
@@ -72,11 +78,6 @@ newPlayer pos =
 
 enemy :: Position -> EnemyType -> Enemy
 enemy pos ty = Enemy pos (30, 30) ty (0, 0) False
-
-levelFor :: Int -> LevelState
-levelFor 0 = thePrelude
-levelFor 1 = theMonadMaze
-levelFor _ = theIOUnderground
 
 shiftTerrain :: Float -> Terrain -> Terrain
 shiftTerrain dx t = t{terrainPos = (x + dx, y), tType = shiftType (tType t)}
@@ -156,7 +157,6 @@ thePrelude = buildLevel (80, -190) [p0, p1, p2, p3, p4]
             [ground 400 800, ledge 250 (-170) 100, ledge 420 (-115) 100, flag 720 groundTop]
             [enemy (150, -210) (TypeMismatch 1), enemy (560, -210) (TypeMismatch (-1))]
             []
-
 
 theMonadMaze :: LevelState
 theMonadMaze = buildLevel (80, -190) [m0, m1, m2, m3, m4]

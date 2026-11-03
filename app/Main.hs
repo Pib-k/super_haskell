@@ -24,10 +24,9 @@ initialState = do
     pure
         GameState
             { appMode = MainMenu
-            , currentLevel = testLevel
-            , availableLevels = ["The Prelude", "The Monad Maze", "The IO Underground"]
-            , levelIndex = 0
-            , isPaused = False
+            , levelState = testLevel
+            , level = minBound
+            , pauseSelection = Resume
             , globalScore = 0
             , highScore = 0
             , rngSeed = seed

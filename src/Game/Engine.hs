@@ -15,9 +15,7 @@ import Game.State
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
-    Playing
-        | not (isPaused gs) ->
-            finishCheck $ updateHighScore $ gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step (rngSeed gs)) gs))
+    Playing -> finishCheck $ updateHighScore $ gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step (rngSeed gs)) gs))
     _ -> gs
   where
     step = min dt maxStep
@@ -27,7 +25,7 @@ stepPure dt gs = case appMode gs of
     fountainEnds =
         any
             (\a -> animType a == MainDoFountain && animTimer a + step >= animDuration a)
-            (animations (currentLevel gs))
+            (animations (levelState gs))
 
 stepLevel :: Float -> Int -> LevelState -> LevelState
 stepLevel dt s lvl =
@@ -45,14 +43,14 @@ stepLevel dt s lvl =
 
 respawnCheck :: GameState -> GameState -> GameState
 respawnCheck before after
-    | lives after < lives before = modifyLevel (resetToDef (levelFor (levelIndex after))) after
+    | lives after < lives before = modifyLevel (resetToDef (levelFor (level after))) after
     | otherwise = after
   where
-    lives = health . player . currentLevel
+    lives = health . player . levelState
 
 gameOverCheck :: GameState -> GameState
 gameOverCheck gs
-    | health (player (currentLevel gs)) <= 0 = gs{appMode = GameOver}
+    | health (player (levelState gs)) <= 0 = gs{appMode = GameOver}
     | otherwise = gs
 
 handleContacts :: LevelState -> Int -> LevelState
@@ -114,5 +112,5 @@ triggerTerrain p t = case tType t of
 
 updateHighScore :: GameState -> GameState
 updateHighScore gs =
-    let currentScore = score (player (currentLevel gs))
+    let currentScore = score (player (levelState gs))
      in gs{highScore = max (highScore gs) currentScore}
