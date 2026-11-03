@@ -4,6 +4,7 @@
 module Game.State where
 
 import Core.Classes
+import Core.Types (Levels, PauseOption)
 import Data.Aeson (FromJSON, ToJSON)
 import Entities.Collectible
 import Entities.Enemy
@@ -27,32 +28,34 @@ data LevelState = LevelState
 instance Resetable LevelState where
     resetToDef start cur =
         cur
-            { player = resetToDef (player start) (player cur)
+            { player = (resetToDef (player start) (player cur)){collectedTrues = 0}
             , enemies = enemies start
+            , terrain = terrain start
+            , collectibles = collectibles start
             , animations = []
             }
 
-data AppMode = MainMenu | LevelSelection | Playing
+data AppMode = MainMenu | LevelSelection | Playing | Paused PauseOption | LevelComplete | GameOver | Controls
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 data GameState = GameState
     { appMode :: AppMode
-    , currentLevel :: LevelState
-    , availableLevels :: [String]
-    , levelIndex :: Int
-    , isPaused :: Bool
+    , levelState :: LevelState
+    , level :: Levels
+    , pauseSelection :: PauseOption
     , globalScore :: Int
     , highScore :: Int
     , rngSeed :: Int
     , rngState :: StdGen
     , isDebugMode :: Bool
+    , menuIndex :: Int
     }
     deriving (Show, Generic, FromJSON, ToJSON)
 
 modifyPlayer :: (Player -> Player) -> GameState -> GameState
-modifyPlayer f gs = gs{currentLevel = lvl{player = f (player lvl)}}
+modifyPlayer f gs = gs{levelState = lvl{player = f (player lvl)}, menuIndex = 0}
   where
-    lvl = currentLevel gs
+    lvl = levelState gs
 
 modifyLevel :: (LevelState -> LevelState) -> GameState -> GameState
-modifyLevel f gs = gs{currentLevel = f (currentLevel gs)}
+modifyLevel f gs = gs{levelState = f (levelState gs), menuIndex = 0}

@@ -82,7 +82,7 @@ constrainTerrainBox tt (targetW, targetH) =
         UnitPlatform ->
             (segWidth '(' "()", h)
         MainDoGoal ->
-            (segWidth 'd' "main = do", h)
+            (flagThickness, flagHeight)
         InfiniteList _ _ _ ->
             (segWidth '[' "[..]", h)
   where
@@ -193,11 +193,26 @@ drawTerrainType tt (w, h) = case tt of
             textW = stringAdvance sym * s
          in color cyan $ drawTextAt s (-textW / 2) dy sym
     MainDoGoal ->
-        let sym = "main=do"
+        let sym = "main = do"
             m = charMetrics 'd'
-            (s, dy) = textLayout h m
+            s = h / stringAdvance sym
+            dy = -(charCenterY m * s)
             textW = stringAdvance sym * s
-         in color yellow $ drawTextAt s (-textW / 2) dy sym
+            poleX = -w / 2 + 2
+            flagW = w * 0.9
+            flagH = h * 0.22
+            top = h / 2
+         in pictures
+                [ color orange $ translate poleX 0 (rectangleSolid 3 h)
+                , color yellow $ translate 2 0 $ rotate (-90) $ drawTextAt s (-textW / 2) dy sym
+                , color red $
+                    polygon
+                        [ (poleX, top)
+                        , (poleX - flagW, top - flagH / 2)
+                        , (poleX, top - flagH)
+                        ]
+                , color (dark red) $ translate poleX top (circleSolid 3)
+                ]
     InfiniteList _ _ _ ->
         let sym = "[..]"
             m = charMetrics '['
