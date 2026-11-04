@@ -66,20 +66,29 @@ instance Renderable Animation where
 
 explosionPicture :: Animation -> Picture
 explosionPicture a =
-    pictures
-        [translate (vx * t) (vy * t + 0.5 * gravity * t * t) $ drawCollectibleType kind (20, 20) | (kind, vx, vy) <- particles]
+    pictures (shockwave : sparks)
   where
     t = animTimer a
+    progress = t / animDuration a
+    fade = max 0.0 (1.0 - progress)
+    shockwave =
+        color (makeColor 1.0 0.9 0.4 (fade * 0.8)) $
+            thickCircle (explosionRadius * progress) 2.5
 
-    particles =
-        [ (FloatingTrue, -65, 220)
-        , (SemiGroup, -35, 260)
-        , (FloatingTrue, -15, 190)
-        , (SemiGroup, 5, 240)
-        , (FloatingTrue, 25, 270)
-        , (SemiGroup, 45, 210)
-        , (FloatingTrue, 65, 250)
-        , (SemiGroup, 80, 180)
+    sparks =
+        [ translate (vx * t) (vy * t + 0.5 * gravity * t * t) $
+            color (makeColor 1.0 cVal 0.1 fade) $
+                circleSolid (particleSize * fade)
+        | (vx, vy, cVal) <-
+            [ (-120, 140, 0.8)
+            , (120, 140, 0.8)
+            , (-150, 60, 0.5)
+            , (150, 60, 0.5)
+            , (-90, 200, 0.9)
+            , (90, 200, 0.9)
+            , (-50, 110, 0.4)
+            , (50, 110, 0.4)
+            ]
         ]
 
 fountainPicture :: Animation -> Picture

@@ -63,9 +63,8 @@ handleInput ev gs = pure (handleInputPure ev gs)
 loadAssets :: IO Assets
 loadAssets = do
     playerSprite <- loadBMP "assets/playerSprite.bmp"
-    typeMismatchSprite <- loadBMP "assets/typeMismatch.bmp"
     music <- initMusic "assets/game_song.wav"
-    pure Assets{playerImg = playerSprite, typeMismatchImg = Just typeMismatchSprite, spaceLeakImg = Nothing, gameMusic = music}
+    pure Assets{playerImg = playerSprite, typeMismatchImg = Nothing, spaceLeakImg = Nothing, gameMusic = music}
 
 main :: IO ()
 main = do

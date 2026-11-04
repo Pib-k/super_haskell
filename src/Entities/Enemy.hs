@@ -83,10 +83,10 @@ instance Renderable Enemy where
                     MiddleStateT -> color green
                     BaseIO -> color white
              in translate x y $ pictures [col $ rectangleWire w h, color c $ rectangleWire w h]
-        _ ->
+        TypeMismatch _ ->
             translate x y $
                 pictures
-                    [ color orange $ rectangleSolid w h
+                    [ color red $ rectangleSolid w h
                     , color c $ rectangleWire w h
                     ]
       where

@@ -58,7 +58,7 @@ handleContacts lvl s =
     lvl
         { player = foldl' (flip applyItem) p' pickedUp
         , enemies = survivors ++ transformed
-        , animations = newGoalAnims ++ animations lvl
+        , animations = newGoalAnims ++ map explosion deadEnemies ++ animations lvl
         , terrain = map (triggerTerrain p') ts
         , collectibles = map dropCollectible deadEnemies ++ remaining
         }
