@@ -64,9 +64,5 @@ levelPlayerBox = (30, 30)
 menuItems :: [String]
 menuItems = ["Start Game", "Level Select", "Controls"]
 
-hudScale, hudSpacing, hudMargin, hudLabelWidth, gameZoom :: Float
-hudScale = 0.2
-hudSpacing = 65
-hudMargin = 25
-hudLabelWidth = 120
+gameZoom :: Float
 gameZoom = 1.6

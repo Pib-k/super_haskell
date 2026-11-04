@@ -8,7 +8,6 @@ import Core.Constants
 import Core.Types
 import Data.Aeson (ToJSON)
 import Data.Aeson.Types (FromJSON)
-import Entities.Collectible
 import Entities.Enemy
 import GHC.Generics
 import Graphics.Gloss

@@ -55,16 +55,22 @@ gameOverCheck gs
 
 handleContacts :: LevelState -> Int -> LevelState
 handleContacts lvl s =
+    handleGoal s
+        . handleTerrain
+        . handleCollectibles
+        . handleEnemies
+        $ lvl
+
+handleEnemies :: LevelState -> LevelState
+handleEnemies lvl =
     lvl
-        { player = foldl' (flip applyItem) p' pickedUp
+        { player = p'
         , enemies = survivors ++ transformed
-        , animations = newGoalAnims ++ map explosion deadEnemies ++ animations lvl
-        , terrain = map (triggerTerrain p') ts
-        , collectibles = map dropCollectible deadEnemies ++ remaining
+        , animations = map explosion deadEnemies ++ animations lvl
+        , collectibles = map dropCollectible deadEnemies ++ collectibles lvl
         }
   where
     p = player lvl
-    ts = terrain lvl
     hits = [(e, checkCollision p e) | e <- enemies lvl]
     stompedHits = [e | (e, Just FromBottom) <- hits]
     hurtBy = [e | (e, Just d) <- hits, d /= FromBottom]
@@ -72,16 +78,35 @@ handleContacts lvl s =
     stompResults = [(e, stompEnemy e) | e <- stompedHits]
     deadEnemies = [e | (e, Nothing) <- stompResults]
     transformed = [newE | (_, Just newE) <- stompResults]
-    (pickedUp, remaining) = partition (\c -> isJust (checkCollision p c)) $ collectibles lvl
+
     p'
         | not (null stompedHits) = bounce p{score = score p + stompScore * length stompedHits}
         | not (null hurtBy) = hurt p
         | otherwise = p
-    goalHits = [t | t <- ts, tType t == MainDoGoal, isJust (checkCollision p t)]
+
+handleTerrain :: LevelState -> LevelState
+handleTerrain lvl =
+    lvl{terrain = map (triggerTerrain (player lvl)) (terrain lvl)}
+
+handleCollectibles :: LevelState -> LevelState
+handleCollectibles lvl =
+    lvl
+        { player = foldl' (flip applyItem) (player lvl) pickedUp
+        , collectibles = remaining
+        }
+  where
+    p = player lvl
+    (pickedUp, remaining) = partition (\c -> isJust (checkCollision p c)) (collectibles lvl)
+
+handleGoal :: Int -> LevelState -> LevelState
+handleGoal s lvl =
+    case [t | t <- terrain lvl, tType t == MainDoGoal, isJust (checkCollision (player lvl) t)] of
+        (goal : _)
+            | not hasFountain ->
+                lvl{animations = mainDoFountain (getPos goal) s : animations lvl}
+        _ -> lvl
+  where
     hasFountain = any (\a -> animType a == MainDoFountain) (animations lvl)
-    newGoalAnims
-        | not (null goalHits) && not hasFountain = [mainDoFountain (getPos (head goalHits)) s]
-        | otherwise = []
 
 dropCollectible :: Enemy -> Collectible
 dropCollectible e =
