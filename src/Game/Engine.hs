@@ -13,6 +13,14 @@ import Game.Animation
 import Game.Levels
 import Game.State
 
+{- | Master pure tick function:
+  1. Clamps delta time to 'maxStep' to avoid collision tunneling.
+  2. Advances physics, enemies, and animations ('stepLevel').
+  3. Checks for game over triggers ('gameOverCheck').
+  4. Resets level layout if lives were lost ('respawnCheck').
+  5. Synchronizes high score ('updateHighScore').
+  6. Transitions mode when level complete fountain ends ('finishCheck').
+-}
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
     Playing -> finishCheck step $ updateHighScore $ respawnCheck gs $ gameOverCheck $ modifyLevel (stepLevel step (rngSeed gs)) gs

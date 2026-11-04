@@ -12,6 +12,17 @@ import GHC.Generics
 import Graphics.FontMetrics
 import Graphics.Gloss
 
+{- | Environmental features rendered as Haskell syntax glyphs:
+  * SolidList : Bracket platforms ([ ]) supporting player and enemies.
+  * FragileComment : Decaying comment lines (--) fading away shortly after contact.
+  * BottomPit : Pit hazard (_|_) representing undefined / bottom.
+  * BindTeleporter : Monadic bind (>>=) instantly transporting the player to target coordinates.
+  * ConveyorBelt : Function arrows (-> / <-) pushing entities along the surface.
+  * PatternGuard : Guard barrier (|) blocking passage until required True count is met.
+  * InfiniteList : Moving platform ([..]) lazily cycling between predefined offsets.
+  * MainDoGoal : Exit flagpole (main = do) triggering level completion.
+  * UnitPlatform : Small stepping stones (()).
+-}
 data TerrainType
     = SolidList
     | FragileComment {opacity :: Float, isTriggered :: Bool}
@@ -40,6 +51,7 @@ surfaceVelocity (ConveyorBelt spd) = spd
 surfaceVelocity (InfiniteList _ _ vel) = vel
 surfaceVelocity _ = 0.0
 
+-- | Adds horizontal velocity (conveyor belt or moving platform) to entities standing on top.
 applyGroundMotion :: (Collidable a, Movable a) => Float -> [Terrain] -> a -> a
 applyGroundMotion dt ts entity = case standingOn entity ts of
     Just t ->
@@ -97,9 +109,14 @@ constrainTerrainBox tt (targetW, targetH) =
             ch = if charHeight m <= 0 then 100.0 else charHeight m
          in h * (stringAdvance sym / ch)
 
+-- | Returns a valid bounding box for the given terrain, as it needs to align with the fontmetrics.
 mkTerrain :: Position -> BoundingBox -> TerrainType -> Terrain
 mkTerrain pos rawBox tt = Terrain pos (constrainTerrainBox tt rawBox) tt
 
+{- | Pure delta-time update for dynamic terrain:
+  * FragileComment : Fades opacity over 0.8 seconds once stepped on.
+  * InfiniteList : Moves horizontally and bounces at offset limits.
+-}
 stepTerrain :: Float -> Terrain -> Terrain
 stepTerrain ds t@(Terrain _ _ (FragileComment opac isTrigg))
     | isTrigg = t{tType = FragileComment (max 0.0 (opac - ds / 0.8)) isTrigg}
@@ -114,6 +131,7 @@ stepTerrain ds (Terrain (x, y) box (InfiniteList cOff mOff vel)) =
         | otherwise = (vel, nextOffset)
 stepTerrain _ tt = tt
 
+-- | Drawing of Terrain based on given fontmetrics with debug bounding box rendering if enabled.
 instance Renderable Terrain where
     render dbg (Terrain tPos tBox terrainType) =
         uncurry translate tPos $
@@ -124,6 +142,7 @@ instance Renderable Terrain where
       where
         c = if dbg then dim white else makeColor 0.0 0.0 0.0 0.0
 
+-- Look at fontmetrics for the special values needed to render this text properly.
 drawTerrainType :: TerrainType -> BoundingBox -> Picture
 drawTerrainType tt (w, h) = case tt of
     SolidList ->
@@ -140,7 +159,7 @@ drawTerrainType tt (w, h) = case tt of
             m = charMetrics '|'
             (s, dy) = textLayout h m
             segW = stringAdvance sym * s
-            count = max 1 (round (w / segW))
+            count = max 1 (round (w / segW)) :: Integer
          in color red $
                 pictures
                     [ drawTextAt s x dy sym
@@ -154,7 +173,7 @@ drawTerrainType tt (w, h) = case tt of
                 m = charMetrics '-'
                 (s, dy) = textLayout h m
                 segW = stringAdvance sym * s
-                count = max 1 (round (w / segW))
+                count = max 1 (round (w / segW)) :: Integer
              in color (makeColor opac opac opac opac) $
                     pictures
                         [ drawTextAt s x dy sym
@@ -172,7 +191,7 @@ drawTerrainType tt (w, h) = case tt of
             m = charMetrics '>'
             (s, dy) = textLayout h m
             segW = stringAdvance sym * s
-            count = max 1 (round (w / segW))
+            count = max 1 (round (w / segW)) :: Integer
          in color yellow $
                 pictures
                     [ drawTextAt s x dy sym

@@ -92,6 +92,11 @@ resolvePlayer p t = case tType t of
   where
     touching = isJust (checkCollision p t)
 
+{- | Resolves AABB collisions against solid obstacles:
+- FromBottom : Snaps player to platform top.
+- FromTop : Bumps ceiling, stopping upward velocity.
+- FromLeft/Right: Wall collision, only cancels horizontal velocity if moving into the wall
+-}
 resolve :: Player -> Terrain -> Player
 resolve p t = case checkCollision p t of
     Just FromBottom -> snapToTop p t
@@ -100,11 +105,11 @@ resolve p t = case checkCollision p t of
          in setPos (px, newY) (setVel (vx, -1) p)
     Just FromLeft ->
         let newX = tx + (tw + pw) / 2
-            velX = if vx < 0 then 0 else vx
+            velX = max 0 vx
          in setPos (newX, py) (setVel (velX, vy) p)
     Just FromRight ->
         let newX = tx - (tw + pw) / 2
-            velX = if vx > 0 then 0 else vx
+            velX = min 0 vx
          in setPos (newX, py) (setVel (velX, vy) p)
     _ -> p
   where

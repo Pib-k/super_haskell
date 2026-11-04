@@ -14,6 +14,9 @@ import GHC.Generics (Generic)
 import Graphics.FontMetrics
 import Graphics.Gloss
 
+{- | Layers of the MonadTransformer enemy. Each stomp unwraps a layer:
+  OuterMaybeT (slowest, largest) -> MiddleStateT -> BaseIO (fastest, smallest, jumping).
+-}
 data TransformerLayer = OuterMaybeT | MiddleStateT | BaseIO
     deriving (Eq, Show, FromJSON, ToJSON, Generic)
 
@@ -30,6 +33,12 @@ layerBox BaseIO = (14.0, 14.0)
 chargeSpeed :: Float
 chargeSpeed = 300.0
 
+{- | Enemies themed around Haskell runtime and type system concepts:
+  * TypeMismatch : Rigid block patrolling platforms. Reverses direction at walls and cliffs.
+  * SpaceLeak : Unevaluated thunk accumulating memory, expanding its bounding box as time goes on.
+  * MonadTransformer : Multi-layered enemy needing multiple stomps to kill.
+  * StrictnessBang : Proximity enemy that forces evaluation by charging at the player.
+-}
 data EnemyType
     = TypeMismatch {direction :: Float}
     | SpaceLeak {size :: Float}
@@ -37,6 +46,9 @@ data EnemyType
     | StrictnessBang {bangPhase :: BangPhase}
     deriving (Eq, Show, FromJSON, ToJSON, Generic)
 
+{- | State machine for StrictnessBang (!):
+IdleThunk -> Forcing -> StrictCharge -> NormalForm.
+-}
 data BangPhase
     = IdleThunk
     | Forcing Float
@@ -66,6 +78,7 @@ instance Grounded Enemy where
     setGrounded tf p = p{enemyGrounded = tf}
     getGrounded = enemyGrounded
 
+-- Rendering of 'Enemy', see fontmetrics module for text creation
 instance Renderable Enemy where
     render dbg e = case enemyType e of
         SpaceLeak _ -> translate x y $ pictures [color green $ rectangleWire w h, color c $ rectangleWire w h]
@@ -119,6 +132,7 @@ stepEnemy dt playerPos ts e = case enemyType e of
   where
     (w, h) = getBox e
 
+-- | StrictnessBang scans in x-axis for player and if player within range, attack the player.
 stepBang :: Float -> Position -> [Terrain] -> Enemy -> BangPhase -> Enemy
 stepBang dt (px, py) ts bang phase = case phase of
     IdleThunk ->
@@ -149,6 +163,7 @@ stepBang dt (px, py) ts bang phase = case phase of
     hitWall = any (\t -> isSolid (tType t) && isJust (checkCollision bang t)) ts
     setPhase p e = e{enemyType = StrictnessBang p}
 
+-- | Platform patrol: checks for walls and probes ahead for cliffs to turn around safely.
 walk :: Float -> [Terrain] -> Float -> Enemy -> Enemy
 walk dt ts dir e
     | blocked || atCliff = landed{enemyType = TypeMismatch (-dir)}
@@ -178,6 +193,9 @@ resolveEnemy e t = case checkCollision e t of
         | isSolid (tType t) -> snapToTop e t
     _ -> e
 
+{- | Player stomps an enemy from above:
+Returns 'Just newEnemy' when unwrapping a MonadTransformer layer, or 'Nothing' on final defeat.
+-}
 stompEnemy :: Enemy -> Maybe Enemy
 stompEnemy e = case enemyType e of
     MonadTransformer OuterMaybeT ->
@@ -196,6 +214,7 @@ stompEnemy e = case enemyType e of
         Nothing
     _ -> Nothing
 
+-- | Similar to walk function, with added functionality of moving to player position.
 stepTransformer :: Float -> Position -> [Terrain] -> TransformerLayer -> Enemy -> Enemy
 stepTransformer dt (px, _) ts l e
     | blocked || atCliff = setVx (-dir * spd) landed
