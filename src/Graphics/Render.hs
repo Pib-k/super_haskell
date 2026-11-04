@@ -19,23 +19,37 @@ viewPure assets gs =
         LevelSelection -> levelSelectPicture gs
         Playing -> renderWorld
         LevelComplete ->
-            let p = player (levelState gs)
-             in pictures
-                    [ textAt 100 0.4 "Level Complete!"
-                    , textAt 20 0.2 ("Score: " ++ show (score p))
-                    , textAt (-30) 0.2 ("Lives: " ++ show (health p))
-                    , textAt (-100) 0.15 "Press Enter to continue"
+            pictures
+                [ centered 0.45 90 yellow "Level Complete!"
+                , centered 0.2 25 white ("Score: " ++ show (score p))
+                , centered 0.2 (-25) (greyN 0.8) ("Lives: " ++ show (health p))
+                , centered 0.14 (-100) (greyN 0.6) "Press Enter to continue"
+                ]
+        GameOver reason -> case reason of
+            RuntimeException ->
+                pictures
+                    [ centered 0.30 90 red "*** Exception: Prelude.undefined"
+                    , centered 0.18 30 (greyN 0.8) "Fell into _|_ (Bottom)"
+                    , centered 0.18 (-20) white ("Score: " ++ show (score p))
+                    , centered 0.14 (-100) (greyN 0.6) "Enter: retry    M: main menu"
                     ]
-        GameOver ->
-            let p = player (levelState gs)
-             in pictures
-                    [ translate (-300) 100 $ scale 0.5 0.5 $ color red $ text "Game Over"
-                    , textAt 20 0.2 ("Score: " ++ show (score p))
-                    , textAt (-30) 0.2 ("High score: " ++ show (highScore gs))
-                    , textAt (-100) 0.15 "Enter: retry    M: main menu"
+            Normal ->
+                pictures
+                    [ centered 0.5 90 red "Game Over"
+                    , centered 0.2 25 white ("Score: " ++ show (score p))
+                    , centered 0.2 (-25) (greyN 0.8) ("High score: " ++ show (highScore gs))
+                    , centered 0.14 (-100) (greyN 0.6) "Enter: retry    M: main menu"
+                    ]
+            Victory ->
+                pictures
+                    [ centered 0.45 90 yellow "ExitCode: 0 (Victory!)"
+                    , centered 0.18 30 (greyN 0.8) "All Monad transformations and IO completed!"
+                    , centered 0.2 (-20) white ("Final Score: " ++ show (score p + globalScore gs))
+                    , centered 0.14 (-100) (greyN 0.6) "Enter: play again    M: main menu"
                     ]
         Paused opt -> pictures [renderWorld, pauseMenuPicture opt]
   where
+    p = player (levelState gs)
     renderWorld =
         let lvl = levelState gs
             dbg = isDebugMode gs

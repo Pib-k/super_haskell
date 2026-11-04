@@ -15,17 +15,10 @@ import Game.State
 
 stepPure :: Float -> GameState -> GameState
 stepPure dt gs = case appMode gs of
-    Playing -> finishCheck $ updateHighScore $ gameOverCheck (respawnCheck gs (modifyLevel (stepLevel step (rngSeed gs)) gs))
+    Playing -> finishCheck step $ updateHighScore $ respawnCheck gs $ gameOverCheck $ modifyLevel (stepLevel step (rngSeed gs)) gs
     _ -> gs
   where
     step = min dt maxStep
-    finishCheck g
-        | appMode g == Playing && fountainEnds = g{appMode = LevelComplete}
-        | otherwise = g
-    fountainEnds =
-        any
-            (\a -> animType a == MainDoFountain && animTimer a + step >= animDuration a)
-            (animations (levelState gs))
 
 stepLevel :: Float -> Int -> LevelState -> LevelState
 stepLevel dt s lvl =
@@ -41,8 +34,22 @@ stepLevel dt s lvl =
     newTerrain = map (stepTerrain dt) (terrain lvl)
     pPos = playerPos (player lvl)
 
+finishCheck :: Float -> GameState -> GameState
+finishCheck step gs
+    | appMode gs == Playing && fountainEnds =
+        if level gs == maxBound
+            then gs{appMode = GameOver Victory}
+            else gs{appMode = LevelComplete}
+    | otherwise = gs
+  where
+    fountainEnds =
+        any
+            (\a -> animType a == MainDoFountain && animTimer a + step >= animDuration a)
+            (animations (levelState gs))
+
 respawnCheck :: GameState -> GameState -> GameState
 respawnCheck before after
+    | appMode after /= Playing = after
     | lives after < lives before = modifyLevel (resetToDef (levelFor (level after))) after
     | otherwise = after
   where
@@ -50,8 +57,15 @@ respawnCheck before after
 
 gameOverCheck :: GameState -> GameState
 gameOverCheck gs
-    | health (player (levelState gs)) <= 0 = gs{appMode = GameOver}
+    | inPit lvl = gs{appMode = GameOver RuntimeException}
+    | health (player lvl) <= 0 = gs{appMode = GameOver Normal}
     | otherwise = gs
+  where
+    lvl = levelState gs
+    p = player lvl
+    inPit l =
+        snd (playerPos p) < voidY
+            || any (\t -> tType t == BottomPit && isJust (checkCollision p t)) (terrain l)
 
 handleContacts :: LevelState -> Int -> LevelState
 handleContacts lvl s =

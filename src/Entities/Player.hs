@@ -80,7 +80,6 @@ conveyorSpeed ts p = sum [speed | t <- ts, ConveyorBelt speed <- [tType t], chec
 
 resolvePlayer :: Player -> Terrain -> Player
 resolvePlayer p t = case tType t of
-    BottomPit | touching -> hurt p
     BindTeleporter target | touching -> setPos target p
     tt
         | isSolid tt -> resolve p t

@@ -4,7 +4,7 @@
 module Game.State where
 
 import Core.Classes
-import Core.Types (Levels, PauseOption)
+import Core.Types (GameOverReason, Levels, PauseOption)
 import Data.Aeson (FromJSON, ToJSON)
 import Entities.Collectible
 import Entities.Enemy
@@ -35,7 +35,14 @@ instance Resetable LevelState where
             , animations = []
             }
 
-data AppMode = MainMenu | LevelSelection | Playing | Paused PauseOption | LevelComplete | GameOver | Controls
+data AppMode
+    = MainMenu
+    | LevelSelection
+    | Playing
+    | Paused PauseOption
+    | LevelComplete
+    | GameOver GameOverReason
+    | Controls
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 data GameState = GameState

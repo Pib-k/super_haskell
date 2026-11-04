@@ -21,6 +21,9 @@ data Levels = Prelude | MonadMaze | IOUnderground
 data PauseOption = Resume | ReturnMainMenu
     deriving (Eq, Show, Enum, Bounded, Generic, FromJSON, ToJSON)
 
+data GameOverReason = Normal | RuntimeException | Victory
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
+
 data Assets = Assets
     { playerImg :: Picture
     , typeMismatchImg :: Maybe Picture

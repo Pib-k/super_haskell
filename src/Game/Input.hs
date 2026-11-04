@@ -17,7 +17,7 @@ handleInputPure (EventKey key keyState _ _) gs =
         Playing -> playingKey k keyState gs
         Paused opt -> pauseKey opt k keyState gs
         LevelComplete -> completeKey k keyState gs
-        GameOver -> gameOverKey k keyState gs
+        GameOver _ -> gameOverKey k keyState gs
         Controls -> controlsKey k keyState gs
   where
     k = normalize key
