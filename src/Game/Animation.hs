@@ -24,6 +24,7 @@ data Animation = Animation
     , animDuration :: Float
     , frameIndex :: Int
     , seed :: Int
+    , animScale :: Float
     }
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
@@ -36,7 +37,11 @@ explosion e =
         , animDuration = explosionDuration
         , frameIndex = 0
         , seed = 0
+        , animScale = max 0.5 (max ew eh / standardSize)
         }
+  where
+    (ew, eh) = getBox e
+    standardSize = 30.0
 
 data FountainParticle = FP
     { fpSymbol :: String
@@ -55,6 +60,7 @@ mainDoFountain pos s =
         , animDuration = mainDoAnimationDuration
         , frameIndex = 0
         , seed = s
+        , animScale = 1.0
         }
 
 instance Renderable Animation where
@@ -66,8 +72,9 @@ instance Renderable Animation where
 
 explosionPicture :: Animation -> Picture
 explosionPicture a =
-    pictures (shockwave : sparks)
+    scale sc sc $ pictures (shockwave : sparks)
   where
+    sc = animScale a
     t = animTimer a
     progress = t / animDuration a
     fade = max 0.0 (1.0 - progress)

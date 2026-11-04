@@ -49,6 +49,7 @@ data GameState = GameState
     , rngState :: StdGen
     , isDebugMode :: Bool
     , menuIndex :: Int
+    , windowDim :: (Float, Float)
     }
     deriving (Show, Generic, FromJSON, ToJSON)
 

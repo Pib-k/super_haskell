@@ -33,6 +33,7 @@ initialState = do
             , rngState = gen'
             , isDebugMode = False
             , menuIndex = 0
+            , windowDim = (800, 600)
             }
 initMusic :: FilePath -> IO Mixer.Music
 initMusic path = do

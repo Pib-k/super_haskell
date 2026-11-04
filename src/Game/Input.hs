@@ -9,6 +9,7 @@ import Game.State
 import Graphics.Gloss.Interface.IO.Game (Event (..), Key (..), KeyState (..), SpecialKey (..))
 
 handleInputPure :: Event -> GameState -> GameState
+handleInputPure (EventResize (w, h)) gs = gs{windowDim = (fromIntegral w, fromIntegral h)}
 handleInputPure (EventKey key keyState _ _) gs =
     case appMode gs of
         MainMenu -> menuKey k keyState gs

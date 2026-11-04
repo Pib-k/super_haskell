@@ -40,7 +40,7 @@ viewPure assets gs =
         let lvl = levelState gs
             dbg = isDebugMode gs
          in pictures
-                [ withCamera lvl $
+                [ withCamera (fst (windowDim gs) / 2) lvl $
                     pictures
                         [ render dbg (terrain lvl)
                         , renderPlayerWithSprite (playerImg assets) dbg (player lvl)
@@ -48,7 +48,7 @@ viewPure assets gs =
                         , render dbg (collectibles lvl)
                         , render dbg (animations lvl)
                         ]
-                , livesHud (health (player lvl))
+                , gameHud gs
                 ]
     textAt y s = translate (-300) y . scale s s . color white . text
 

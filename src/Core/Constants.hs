@@ -47,8 +47,7 @@ collectibleSize = (20, 20)
 collectibleScore :: Int
 collectibleScore = 50
 
-screenHalfWidth, levelWidth, sectionWidth, screenHalfHeight :: Float
-screenHalfWidth = 400
+levelWidth, sectionWidth, screenHalfHeight :: Float
 levelWidth = 2400
 sectionWidth = 800
 screenHalfHeight = 300
@@ -65,8 +64,9 @@ levelPlayerBox = (30, 30)
 menuItems :: [String]
 menuItems = ["Start Game", "Level Select", "Controls"]
 
-hudScale, hudSpacing, hudMargin, hudLabelWidth :: Float
+hudScale, hudSpacing, hudMargin, hudLabelWidth, gameZoom :: Float
 hudScale = 0.2
 hudSpacing = 65
 hudMargin = 25
 hudLabelWidth = 120
+gameZoom = 1.6
