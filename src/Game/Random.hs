@@ -6,6 +6,7 @@ import Data.Aeson
 import System.Random.Internal (StdGen (..))
 import System.Random.SplitMix (seedSMGen, unseedSMGen)
 
+-- | JSON serialization instances for the RNG state, so level seeds can be properly saved and restored.
 instance ToJSON StdGen where
     toJSON (StdGen gen) = toJSON (unseedSMGen gen)
 

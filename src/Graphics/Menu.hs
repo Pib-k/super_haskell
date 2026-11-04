@@ -8,10 +8,12 @@ import Game.State
 import Graphics.FontMetrics
 import Graphics.Gloss
 
+-- | Centers strings in window.
 centered :: Float -> Float -> Color -> String -> Picture
 centered s y c str =
     translate (negate (stringAdvance str * s) / 2) y $ scale s s $ color c $ text str
 
+-- | Generates the main menu layout and highlighted selection options.
 mainMenuPicture :: GameState -> Picture
 mainMenuPicture gs =
     pictures
@@ -30,6 +32,7 @@ mainMenuPicture gs =
       where
         y = 10 - fromIntegral i * 60
 
+-- | Generates the pause menu layout and highlighted selection options.
 pauseMenuPicture :: PauseOption -> Picture
 pauseMenuPicture selected =
     pictures
@@ -49,6 +52,7 @@ pauseMenuPicture selected =
 backdrop :: Picture
 backdrop = color (makeColor 0.2 0.2 0.3 1) (rectangleWire 760 560)
 
+-- | Displays the help screen listing in game key bindings.
 controlsPicture :: Picture
 controlsPicture =
     pictures

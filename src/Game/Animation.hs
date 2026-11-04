@@ -16,6 +16,7 @@ import System.Random
 data AnimationType = DefeatExplosion | MainDoFountain
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
+-- | Tracks the state and lifecycle of an active animation.
 data Animation = Animation
     { animPos :: Position
     , animType :: AnimationType
@@ -27,6 +28,7 @@ data Animation = Animation
     }
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
+-- | Spawns an explosion animation scaled to the defeated enemy's size.
 explosion :: Enemy -> Animation
 explosion e =
     Animation
@@ -42,6 +44,7 @@ explosion e =
     (ew, eh) = getBox e
     standardSize = 30.0
 
+-- | Single particle shot by the main-do fountain.
 data FountainParticle = FP
     { fpSymbol :: String
     , fpLaunchTime :: Float
@@ -82,9 +85,9 @@ explosionPicture a =
             thickCircle (explosionRadius * progress) 2.5
 
     sparks =
-        [ translate (vx * t) (vy * t + 0.5 * gravity * t * t) $
-            color (makeColor 1.0 cVal 0.1 fade) $
-                circleSolid (particleSize * fade)
+        [ translate (vx * t) (vy * t + 0.5 * gravity * t * t)
+            $ color (makeColor 1.0 cVal 0.1 fade)
+            $ circleSolid (particleSize * fade)
         | (vx, vy, cVal) <-
             [ (-120, 140, 0.8)
             , (120, 140, 0.8)
@@ -103,16 +106,17 @@ fountainPicture a = case animType a of
         pictures
             [ if tLocal >= 0 && tLocal < 1.2
                 then
-                    translate (fpVx p * tLocal) (fpVy p * tLocal + 0.5 * gravity * tLocal * tLocal) $
-                        color (fpColor p) $
-                            scale 0.1 0.1 $
-                                text (fpSymbol p)
+                    translate (fpVx p * tLocal) (fpVy p * tLocal + 0.5 * gravity * tLocal * tLocal)
+                        $ color (fpColor p)
+                        $ scale 0.1 0.1
+                        $ text (fpSymbol p)
                 else Blank
             | p <- generateParticles $ seed a
             , let tLocal = animTimer a - fpLaunchTime p
             ]
     _ -> Blank
 
+-- | Generates a batch of fountain particles using a seeded RNG.
 generateParticles :: Int -> [FountainParticle]
 generateParticles s =
     fst $
@@ -139,6 +143,7 @@ makeParticle i gen =
     colorPool = [yellow, cyan, magenta, green, orange, rose, violet, aquamarine, white]
     pool = ["map", "filter", "foldr", "(>>=)", "(<$>)", "pure", "id", "(.)", "join", "fix", "λ"]
 
+-- | Progresses all active animations by the time step and removes those that have finished.
 updateAnimation :: Float -> [Animation] -> [Animation]
 updateAnimation dt = filter alive . map tick
   where
