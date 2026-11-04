@@ -173,7 +173,9 @@ theMonadMaze = buildLevel (80, -190) [m0, m1, m2, m3, m4]
     m1 =
         Section
             [ground 400 800, mkTerrain (400, -150) (30, 150) (PatternGuard True 2)]
-            [enemy (150, -210) (SpaceLeak 5)]
+            [ enemy (150, -210) (SpaceLeak 5)
+            , Enemy (100, -210) (layerBox OuterMaybeT) (MonadTransformer OuterMaybeT) (0, 0) False
+            ]
             []
     m2 =
         Section
@@ -195,7 +197,6 @@ theMonadMaze = buildLevel (80, -190) [m0, m1, m2, m3, m4]
         Section
             [ground 400 800, flag 740 groundTop]
             [ enemy (300, -210) (SpaceLeak 5)
-            , Enemy (600, -210) (layerBox OuterMaybeT) (MonadTransformer OuterMaybeT) (0, 0) False
             ]
             []
 

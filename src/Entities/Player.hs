@@ -96,10 +96,12 @@ resolve p t = case checkCollision p t of
          in setPos (px, newY) (setVel (vx, -1) p)
     Just FromLeft ->
         let newX = tx + (tw + pw) / 2
-         in setPos (newX, py) (setVel (0, vy) p)
+            velX = if vx < 0 then 0 else vx
+         in setPos (newX, py) (setVel (velX, vy) p)
     Just FromRight ->
         let newX = tx - (tw + pw) / 2
-         in setPos (newX, py) (setVel (0, vy) p)
+            velX = if vx > 0 then 0 else vx
+         in setPos (newX, py) (setVel (velX, vy) p)
     _ -> p
   where
     (px, py) = getPos p
