@@ -5,6 +5,7 @@ import Core.Types
 import Data.List
 import Graphics.Gloss (Picture, pictures)
 
+-- | Entities that have a 2D center pos and an AABB.
 class Collidable a where
     getPos :: a -> Position
     getBox :: a -> BoundingBox
@@ -32,15 +33,14 @@ checkCollision a b =
                         else Just (if dy > 0 then FromBottom else FromTop)
             else Nothing
 
+-- | Gloss render. 'dbg' flag renders bounding box hitboxes.
 class Renderable a where
     render :: Bool -> a -> Picture
 
 instance (Renderable a) => Renderable [a] where
     render dbg = pictures . map (render dbg)
 
-class Updateable a where
-    updateState :: Float -> a -> a
-
+-- | Entities possessing velocity with gravity.
 class (Collidable a) => Movable a where
     getVel :: a -> Velocity
     setPos :: Position -> a -> a
@@ -60,6 +60,7 @@ class (Movable a) => Grounded a where
     getGrounded :: a -> Bool
     setGrounded :: Bool -> a -> a
 
+-- | Prevent falling through a platform.
 snapToTop :: (Grounded a, Collidable b) => a -> b -> a
 snapToTop e t =
     let (_, ty) = getPos t

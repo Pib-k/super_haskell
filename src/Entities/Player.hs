@@ -42,7 +42,7 @@ instance Resetable Player where
             , collectedTrues = collectedTrues cur
             }
 
--- Outdated because we have a sprite
+-- | Fallback vector rendering for the Player and debug hitbox outline.
 instance Renderable Player where
     render dbg p =
         translate x y $
@@ -59,24 +59,29 @@ instance Grounded Player where
     setGrounded tf p = p{isGrounded = tf}
     getGrounded = isGrounded
 
+-- | Checks is 'Player' fell too far down.
 voidCheck :: Player -> Player
 voidCheck p
     | snd (getPos p) < voidY = hurt p
     | otherwise = p
 
+-- | Resets 'Player' position if hurt by an enemy.
 hurt :: Player -> Player
 hurt p = setVel (0, 0) (setPos spawnPosition p{health = health p - 1})
 
+-- | Upwards boost (used when hitting an enemy from above).
 bounce :: Player -> Player
 bounce p = setVel (fst (getVel p), bounceSpeed) p
 
+{- | Advances the player by delta time:
+- Applies velocity and gravity via 'stepMovement'.
+- Resolves collisions against solid terrain and teleporters.
+- Applies platform motion from conveyor belts and moving platforms.
+-}
 stepPlayer :: Float -> [Terrain] -> Player -> Player
 stepPlayer dt ts p = voidCheck $ applyGroundMotion dt ts $ foldl resolvePlayer moved ts
   where
     moved = stepMovement dt p
-
-conveyorSpeed :: [Terrain] -> Player -> Float
-conveyorSpeed ts p = sum [speed | t <- ts, ConveyorBelt speed <- [tType t], checkCollision p t == Just FromBottom]
 
 resolvePlayer :: Player -> Terrain -> Player
 resolvePlayer p t = case tType t of
@@ -109,6 +114,7 @@ resolve p t = case checkCollision p t of
     (pw, ph) = getBox p
     (vx, vy) = getVel p
 
+-- | Character movement controls
 playerKey :: Key -> KeyState -> Player -> Player
 playerKey (Char 'a') Down p = setVx (-moveSpeed) p
 playerKey (Char 'a') Up p = if fst (getVel p) < 0 then setVx 0 p else p
