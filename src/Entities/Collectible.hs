@@ -45,7 +45,7 @@ drawCollectibleType FloatingTrue (w, h) =
                 [ drawTextAt s (-w / 2) dy "T"
                 , drawTextAt s (w / 2 - bracketW) dy "T"
                 ]
-drawCollectibleType SemiGroup (w, h) =
+drawCollectibleType SemiGroup (_, h) =
     let sym = "<>"
         m = charMetrics '>'
         (s, dy) = textLayout h m

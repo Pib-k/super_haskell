@@ -64,7 +64,6 @@ viewPure assets gs =
                         ]
                 , gameHud gs
                 ]
-    textAt y s = translate (-300) y . scale s s . color white . text
 
 spriteFor :: Enemy -> Maybe Picture
 spriteFor e = case enemyType e of
