@@ -45,6 +45,9 @@ data AppMode
     | Controls
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
+{- | The master state for the game holding current application mode,
+active level and global configurations.
+-}
 data GameState = GameState
     { appMode :: AppMode
     , levelState :: LevelState

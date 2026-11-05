@@ -1,4 +1,4 @@
-module Graphics.Lives where
+module Graphics.Hud where
 
 import Core.Constants
 import Entities.Player (Player (..))
@@ -7,6 +7,7 @@ import Graphics.FontMetrics (stringAdvance)
 import Graphics.Gloss
 import Graphics.Menu (levelTitle)
 
+-- | Renders the HUD, indicating remaining health, level progress and score.
 gameHud :: GameState -> Picture
 gameHud gs =
     pictures

@@ -64,7 +64,7 @@ library
       Graphics.Render,
       Graphics.Camera,
       Graphics.Menu,
-      Graphics.Lives,
+      Graphics.Hud,
       Entities.Terrain,
       Entities.Collectible,
       Entities.Player,

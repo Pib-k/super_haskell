@@ -8,6 +8,7 @@ import Entities.Player
 import Entities.Terrain
 import Game.State
 
+-- | A level section containing terrain, enemies and items to simplify level creation.
 data Section = Section
     { secTerrain :: [Terrain]
     , secEnemies :: [Enemy]

@@ -8,7 +8,7 @@ import Entities.Terrain ()
 import Game.State
 import Graphics.Camera (withCamera)
 import Graphics.Gloss
-import Graphics.Lives
+import Graphics.Hud
 import Graphics.Menu
 
 viewPure :: Assets -> GameState -> Picture

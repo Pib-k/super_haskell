@@ -6,6 +6,7 @@ import Game.State (LevelState (..))
 import Graphics.Gloss (Picture, translate)
 import Graphics.Gloss.Data.Picture (scale)
 
+-- | Calculates the offset for the camera to follow the player, clamped by level boundaries.
 cameraPos :: Float -> LevelState -> (Float, Float)
 cameraPos halfW lvl = (camX, camY)
   where

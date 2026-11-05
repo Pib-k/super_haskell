@@ -15,7 +15,11 @@ import Game.State
 
 {- | Master pure tick function:
   1. Clamps delta time to 'maxStep' to avoid collision tunneling.
+<<<<<<< HEAD
   2. Advances physics, enemies, and animations ('stepLevel').
+=======
+  2. Advances physics, enemies and animations ('stepLevel').
+>>>>>>> 5141fb5f2c91f3b4196573007375be386a9d2baa
   3. Checks for game over triggers ('gameOverCheck').
   4. Resets level layout if lives were lost ('respawnCheck').
   5. Synchronizes high score ('updateHighScore').
@@ -28,6 +32,7 @@ stepPure dt gs = case appMode gs of
   where
     step = min dt maxStep
 
+-- | Progresses the physics and state for all entities within the current level.
 stepLevel :: Float -> Int -> LevelState -> LevelState
 stepLevel dt s lvl =
     handleContacts
@@ -42,6 +47,7 @@ stepLevel dt s lvl =
     newTerrain = map (stepTerrain dt) (terrain lvl)
     pPos = playerPos (player lvl)
 
+-- | Transitions to the next level or victory screen once the fountain animation completes.
 finishCheck :: Float -> GameState -> GameState
 finishCheck step gs
     | appMode gs == Playing && fountainEnds =
@@ -75,6 +81,7 @@ gameOverCheck gs
         snd (playerPos p) < voidY
             || any (\t -> tType t == BottomPit && isJust (checkCollision p t)) (terrain l)
 
+-- | Resolves all interactions between the player, enemies, collectibles and terrain.
 handleContacts :: LevelState -> Int -> LevelState
 handleContacts lvl s =
     handleGoal s
@@ -83,6 +90,7 @@ handleContacts lvl s =
         . handleEnemies
         $ lvl
 
+-- | Processes enemy collisions, separating successful stomps from damage taken.
 handleEnemies :: LevelState -> LevelState
 handleEnemies lvl =
     lvl
@@ -110,6 +118,7 @@ handleTerrain :: LevelState -> LevelState
 handleTerrain lvl =
     lvl{terrain = map (triggerTerrain (player lvl)) (terrain lvl)}
 
+-- | Processes picking up items, applying their effects and removing them from the world.
 handleCollectibles :: LevelState -> LevelState
 handleCollectibles lvl =
     lvl

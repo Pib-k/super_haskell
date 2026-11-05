@@ -8,6 +8,18 @@ import Game.Levels (levelFor)
 import Game.State
 import Graphics.Gloss.Interface.IO.Game (Event (..), Key (..), KeyState (..), SpecialKey (..))
 
+data NavDirection = Prev | Next
+
+navDirection :: Key -> Maybe NavDirection
+navDirection (Char 'w') = Just Prev
+navDirection (Char 'a') = Just Prev
+navDirection (SpecialKey KeyUp) = Just Prev
+navDirection (Char 's') = Just Next
+navDirection (Char 'd') = Just Next
+navDirection (SpecialKey KeyDown) = Just Next
+navDirection _ = Nothing
+
+-- | Delegates key events based on the active application mode.
 handleInputPure :: Event -> GameState -> GameState
 handleInputPure (EventResize (w, h)) gs = gs{windowDim = (fromIntegral w, fromIntegral h)}
 handleInputPure (EventKey key keyState _ _) gs =
@@ -23,38 +35,35 @@ handleInputPure (EventKey key keyState _ _) gs =
     k = normalize key
 handleInputPure _ gs = gs
 
+-- | Normalizes character inputs to lowercase to prevent Caps Lock/Shift issues.
 normalize :: Key -> Key
 normalize (Char c) = Char (toLower c)
 normalize k = k
 
+-- | Menu navigation.
 menuKey :: Key -> KeyState -> GameState -> GameState
-menuKey (Char 'w') Down gs = moveMenu (-1) gs
-menuKey (Char 's') Down gs = moveMenu 1 gs
-menuKey (SpecialKey KeyUp) Down gs = moveMenu (-1) gs
-menuKey (SpecialKey KeyDown) Down gs = moveMenu 1 gs
-menuKey (SpecialKey KeyEnter) Down gs = case menuIndex gs of
-    0 -> gs{appMode = Playing, levelState = levelFor Prelude}
-    1 -> gs{appMode = LevelSelection}
-    _ -> gs{appMode = Controls}
+menuKey key Down gs = case navDirection key of
+    Just Prev -> moveMenu (-1) gs
+    Just Next -> moveMenu 1 gs
+    Nothing -> case key of
+        SpecialKey KeyEnter -> case menuIndex gs of
+            0 -> gs{appMode = Playing, levelState = levelFor Prelude}
+            1 -> gs{appMode = LevelSelection}
+            _ -> gs{appMode = Controls}
+        _ -> gs
 menuKey _ _ gs = gs
 
 moveMenu :: Int -> GameState -> GameState
 moveMenu d gs = gs{menuIndex = (menuIndex gs + d) `mod` length menuItems}
 
 selectionKey :: Key -> KeyState -> GameState -> GameState
-selectionKey key Down gs = case key of
-    Char 'w' -> prev
-    Char 's' -> next
-    Char 'a' -> prev
-    Char 'd' -> next
-    SpecialKey KeyUp -> prev
-    SpecialKey KeyDown -> next
-    SpecialKey KeyEnter -> gs{appMode = Playing, levelState = levelFor (level gs)}
-    Char 'm' -> gs{appMode = MainMenu}
-    _ -> gs
-  where
-    prev = gs{level = previousLevel (level gs)}
-    next = gs{level = nextLevel (level gs)}
+selectionKey key Down gs = case navDirection key of
+    Just Prev -> gs{level = previousLevel (level gs)}
+    Just Next -> gs{level = nextLevel (level gs)}
+    Nothing -> case key of
+        SpecialKey KeyEnter -> gs{appMode = Playing, levelState = levelFor (level gs)}
+        Char 'm' -> gs{appMode = MainMenu}
+        _ -> gs
 selectionKey _ _ gs = gs
 
 nextLevel :: Levels -> Levels
