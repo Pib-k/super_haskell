@@ -35,6 +35,7 @@ instance Renderable Collectible where
       where
         c = if dbg then dim white else makeColor 0.0 0.0 0.0 0.0
 
+-- | Draw the collectible type indicator
 drawCollectibleType :: CollectibleType -> BoundingBox -> Picture
 drawCollectibleType FloatingTrue (w, h) =
     color white $

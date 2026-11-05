@@ -72,6 +72,7 @@ instance Renderable Animation where
                 DefeatExplosion -> explosionPicture a
                 MainDoFountain -> fountainPicture a
 
+-- | Draws the explosion animation
 explosionPicture :: Animation -> Picture
 explosionPicture a =
     scale sc sc $ pictures (shockwave : sparks)
@@ -100,6 +101,7 @@ explosionPicture a =
             ]
         ]
 
+-- | Draws the fountain animation
 fountainPicture :: Animation -> Picture
 fountainPicture a = case animType a of
     MainDoFountain ->

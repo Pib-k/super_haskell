@@ -15,11 +15,7 @@ import Game.State
 
 {- | Master pure tick function:
   1. Clamps delta time to 'maxStep' to avoid collision tunneling.
-<<<<<<< HEAD
-  2. Advances physics, enemies, and animations ('stepLevel').
-=======
   2. Advances physics, enemies and animations ('stepLevel').
->>>>>>> 5141fb5f2c91f3b4196573007375be386a9d2baa
   3. Checks for game over triggers ('gameOverCheck').
   4. Resets level layout if lives were lost ('respawnCheck').
   5. Synchronizes high score ('updateHighScore').
