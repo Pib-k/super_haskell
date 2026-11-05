@@ -45,6 +45,7 @@ testEnemy =
     , Enemy (150, -150) (layerBox OuterMaybeT) (MonadTransformer OuterMaybeT) (0, 0) False
     ]
 
+-- | The test level for development and debugging
 testLevel :: LevelState
 testLevel =
     LevelState
@@ -77,6 +78,7 @@ newPlayer pos =
         , collectedTrues = 0
         }
 
+-- | Functions for creating game entities to make level design easier
 enemy :: Position -> EnemyType -> Enemy
 enemy pos ty = Enemy pos (30, 30) ty (0, 0) False
 
@@ -130,6 +132,7 @@ ride x y reach v = mkTerrain (x, y) (70, 30) (InfiniteList 0 reach v)
 item :: Position -> CollectibleType -> Collectible
 item pos = Collectible pos collectibleSize
 
+-- | Level designs for 'The Prelude', 'The Monad Maze', and 'The IO Underground'
 thePrelude :: LevelState
 thePrelude = buildLevel (80, -190) [p0, p1, p2, p3, p4]
   where

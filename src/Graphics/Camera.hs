@@ -16,6 +16,7 @@ cameraPos halfW lvl = (camX, camY)
     camX = max (negate limitX) (min limitX px)
     camY = max (-130) (py + 30)
 
+-- | Applies the camera transformation to the world picture.
 withCamera :: Float -> LevelState -> Picture -> Picture
 withCamera halfW lvl world =
     scale gameZoom gameZoom $

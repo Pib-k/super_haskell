@@ -11,11 +11,13 @@ import Game.State
 saveFile :: FilePath
 saveFile = "save.json"
 
+-- | Saves the game progress to a file
 saveProgress :: FilePath -> GameState -> IO ()
 saveProgress path gs = BL.writeFile path . encode $ newGameState
   where
     newGameState = gs{appMode = Paused Resume}
 
+-- | Loads the game progress from a file
 loadSave :: FilePath -> IO (Maybe GameState)
 loadSave path = do
     result <- try (BL.readFile path)
