@@ -203,7 +203,7 @@ theMonadMaze = buildLevel (80, -190) [m0, m1, m2, m3, m4]
     m4 =
         Section
             [ground 400 800, flag 740 groundTop]
-            [ enemy (300, -210) (SpaceLeak 5)
+            [ enemy (300, -210) (MonadTransformer OuterMaybeT)
             ]
             []
 
