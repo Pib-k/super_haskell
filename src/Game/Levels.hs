@@ -41,7 +41,7 @@ testEnemy :: [Enemy]
 testEnemy =
     [ Enemy (-40, -65) (30, 30) (TypeMismatch 1) (0, 0) False
     , Enemy (-150, 10) (30, 30) (SpaceLeak 5) (0, 0) False
-    , Enemy (150, -100) (30, 30) (StrictnessBang IdleThunk) (0, 0) False
+    , Enemy (150, -100) (30, 10) (StrictnessBang IdleThunk) (0, 0) False
     , Enemy (150, -150) (layerBox OuterMaybeT) (MonadTransformer OuterMaybeT) (0, 0) False
     ]
 
@@ -81,6 +81,9 @@ newPlayer pos =
 -- | Functions for creating game entities to make level design easier
 enemy :: Position -> EnemyType -> Enemy
 enemy pos ty = Enemy pos (30, 30) ty (0, 0) False
+
+strictness :: Position -> Enemy
+strictness pos = Enemy pos (10, 30) (StrictnessBang IdleThunk) (0, 0) False
 
 shiftTerrain :: Float -> Terrain -> Terrain
 shiftTerrain dx t = t{terrainPos = (x + dx, y), tType = shiftType (tType t)}
@@ -207,7 +210,7 @@ theMonadMaze = buildLevel (80, -190) [m0, m1, m2, m3, m4]
 theIOUnderground :: LevelState
 theIOUnderground = buildLevel (80, -160) [i0, i1, i2, i3, i4, i5]
   where
-    bang x y = enemy (x, y) (StrictnessBang IdleThunk)
+    bang x y = strictness (x, y)
     i0 =
         Section
             [ledge 100 (-200) 200, ride 300 (-200) 120 60, ride 500 (-190) 100 70, ledge 730 (-200) 140]
