@@ -1,12 +1,82 @@
-group 57
+# Super Haskell 🎮
 
-song credits: [game-music](https://pixabay.com/music/electronic-game-game-music-508018/)
+A Mario-style functional 2D platformer written in Haskell using [Gloss](https://hackage.haskell.org/package/gloss).
+
+> **Course:** Functional Programming (Group 57)  
+> **Music Credits:** [Pixabay - Electronic Game Music](https://pixabay.com/music/electronic-game-game-music-508018/)
+
 ---
 
-Questions for meeting with TA:
----------------------------------
+## TOC
 
-1. Player en Enemy hebben beide een `Movable`-class, is het beter om een gedeeld Body-record in beide types te stoppen? (pos, speed, hitBox)
-2. Is een grote `Engine.hs` een probleem? Want zodra die groter wordt wordt het wel wat onoverzichterlijker.
-3. `GameState` heeft zowel `isPaused :: Bool` en `AppMode`, is het beter om `Paused` een `AppMode` te maken? (dan worden ongeldige combi's onmogelijk als het goed is)
-4. When creating levels using ASCII, and also loading bitmaps, how can we make sure the bitmaps dont float? And how to translate ASCII coordinates to Gloss coordinates
+- [System Dependencies (SDL2 Audio)](#system-dependencies-sdl2-audio)
+- [Alternative: Run Without Music (`no_music` branch)](#alternative-run-without-music-no_music-branch)
+- [Installation & Running](#installation--running)
+- [Controls](#controls)
+
+## System Dependencies (SDL2 Audio)
+
+The main branch includes background music using `sdl2` and `sdl2-mixer`. These C libraries must be installed on your system before Cabal can build them.
+
+### Ubuntu / Debian
+
+```bash
+sudo apt update
+sudo apt install libsdl2-dev libsdl2-mixer-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev
+```
+
+### Arch Linux
+
+```bash
+sudo pacman -S sdl2 sdl2_mixer freeglut
+```
+
+### macOS (Homebrew)
+
+```bash
+brew install sdl2 sdl2_mixer
+```
+
+## Alternative: Run Without Music (`no_music` branch)
+
+If you do not want to install SDL2 C-libraries or are having issues with installation, you can switch to the `no_music` branch:
+
+```bash
+git checkout no_music
+```
+
+This branch removes the `sdl2` and `sdl2-mixer` C-dependencies, allowing the game to compile using only Haskell dependencies.
+
+## Installation & Running
+
+1. **Update package lists:**
+
+   ```bash
+   cabal update
+   ```
+
+2. **Build the project:**
+
+   ```bash
+   cabal build
+   ```
+
+3. **Run the game:**
+   ```bash
+   cabal run
+   ```
+
+## Controls
+
+|     Key     | Action                                                       |
+| :---------: | :----------------------------------------------------------- |
+|   **`A`**   | Walk Left                                                    |
+|   **`D`**   | Walk Right                                                   |
+|   **`W`**   | Jump (only when grounded on a platform)                      |
+|   **`S`**   | Fast-Fall (accelerate downwards)                             |
+|   **`P`**   | Pause / Resume Game                                          |
+|   **`K`**   | Save Game State (saves to `save.json`)                       |
+|   **`L`**   | Load Game State (loads from `save.json`)                     |
+|   **`B`**   | Toggle Debug Hitboxes                                        |
+| **`Enter`** | Confirm menu selection / Retry on Game Over / Proceed        |
+|   **`M`**   | Return to Main Menu (from Pause, Game Over, or Level Select) |
