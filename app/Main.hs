@@ -1,8 +1,6 @@
 module Main (main) where
 
 import Core.Types
-import Foreign.C (withCString)
-import GHC.ForeignPtr (newForeignPtr_)
 import Game.Engine (stepPure)
 import Game.Input (handleInputPure, normalize)
 import Game.Levels
@@ -10,12 +8,8 @@ import Game.State (AppMode (..), GameState (..))
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game (Event (..), Key (..), KeyState (..), playIO)
 import Graphics.Render (viewPure)
-import qualified SDL
-import qualified SDL.Mixer as Mixer
-import qualified SDL.Raw.Mixer as RawMixer
 import Storage.Save
 import System.Random (getStdGen, uniform)
-import Unsafe.Coerce (unsafeCoerce)
 
 initialState :: IO GameState
 initialState = do
@@ -35,16 +29,6 @@ initialState = do
             , menuIndex = 0
             , windowDim = (800, 600)
             }
-initMusic :: FilePath -> IO Mixer.Music
-initMusic path = do
-    SDL.initialize [SDL.InitAudio]
-    Mixer.openAudio Mixer.defaultAudio 4096
-    -- SDL is a C package. We need a foreignPtr in order to prevent
-    -- garbage collection (and thus the stopping of the music).
-    rawPtr <- withCString path RawMixer.loadMUS
-    _ <- RawMixer.playMusic rawPtr (-1)
-    fptr <- newForeignPtr_ rawPtr
-    pure (unsafeCoerce fptr)
 
 viewWorld :: Assets -> GameState -> IO Picture
 viewWorld assets = pure . viewPure assets
@@ -64,8 +48,7 @@ handleInput ev gs = pure (handleInputPure ev gs)
 loadAssets :: IO Assets
 loadAssets = do
     playerSprite <- loadBMP "assets/playerSprite.bmp"
-    music <- initMusic "assets/game_song.wav"
-    pure Assets{playerImg = playerSprite, typeMismatchImg = Nothing, spaceLeakImg = Nothing, gameMusic = music}
+    pure Assets{playerImg = playerSprite, typeMismatchImg = Nothing, spaceLeakImg = Nothing}
 
 main :: IO ()
 main = do
