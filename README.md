@@ -37,6 +37,11 @@ sudo pacman -S sdl2 sdl2_mixer freeglut
 brew install sdl2 sdl2_mixer
 ```
 
+### Windows (GHCup + MSYS2)
+
+Windows requires the SDL2 native libraries and a compatible MinGW/Clang toolchain.
+Spent 3 hours debugging (because cabal, GHCup and MSYS2 do not play nice), cry, give up and then switch to the `no_music` branch.
+
 ## Alternative: Run Without Music (`no_music` branch)
 
 If you do not want to install SDL2 C-libraries or are having issues with installation, you can switch to the `no_music` branch:
