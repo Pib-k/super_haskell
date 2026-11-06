@@ -9,7 +9,7 @@ A Mario-style functional 2D platformer written in Haskell using [Gloss](https://
 
 ## TOC
 
-- [System Dependencies (SDL2 Audio)](#system-dependencies-sdl2-audio)
+- [System Dependencies](#system-dependencies-sdl2-audio)
 - [Alternative: Run Without Music (`no_music` branch)](#alternative-run-without-music-no_music-branch)
 - [Installation & Running](#installation--running)
 - [Controls](#controls)
@@ -39,7 +39,13 @@ brew install sdl2 sdl2_mixer
 
 ### Windows (GHCup + MSYS2)
 
-Windows requires the SDL2 native libraries and a compatible MinGW/Clang toolchain.
+For FreeGlut Font run:
+
+```powershell
+C:\ghcup\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm mingw-w64-x86_64-freeglut"
+```
+
+Besides this, windows requires the SDL2 native libraries AND a compatible MinGW/Clang toolchain.
 Spent 3 hours debugging (because cabal, GHCup and MSYS2 do not play nice), cry, give up and then switch to the `no_music` branch.
 
 ## Alternative: Run Without Music (`no_music` branch)
